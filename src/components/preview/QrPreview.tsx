@@ -1,3 +1,4 @@
+import Copy from "lucide-solid/icons/copy";
 import Download from "lucide-solid/icons/download";
 import Share2 from "lucide-solid/icons/share-2";
 import Info from "lucide-solid/icons/info";
@@ -11,7 +12,7 @@ import {
   MODE_NAMES,
 } from "~/lib/options";
 import { FlatButton } from "../Button";
-import { toastError } from "../ErrorToasts";
+import { toastError, toastSuccess } from "../ErrorToasts";
 import { SplitButton } from "../SplitButton";
 import { useRenderContext } from "~/lib/RenderContext";
 import { Popover } from "@kobalte/core/popover";
@@ -219,8 +220,34 @@ function DownloadButtons() {
     URL.revokeObjectURL(url);
   };
 
+  const copyToClipboard = async () => {
+    try {
+      const png = await pngBlob(0, 0);
+      if (png == null) throw "Failed to create PNG";
+
+      const clipboardData: Record<string, Blob> = {
+        "image/png": png,
+      };
+      if (render()?.type === "svg") {
+        // The mimetype of "image/svg+xml" is not able to be written to clipboard, but apps like Figma accept "text/plain" SVG data
+        clipboardData["text/plain"] = new Blob(
+          [svgParentRefs[0].innerHTML],
+          { type: "text/plain" }
+        );
+      }
+
+      await navigator.clipboard.write([new ClipboardItem(clipboardData)]);
+      toastSuccess("Copied to clipboard");
+    } catch (e) {
+      toastError(
+        "Failed to copy",
+        typeof e === "string" ? e : "Clipboard write failed"
+      );
+    }
+  }
+
   return (
-    <div class="flex gap-2 md:(grid grid-cols-2)">
+    <div class="flex gap-2 md:(grid grid-cols-[1fr_1fr_auto])">
       <SplitButton
         disabled={disabled()}
         onPng={async (resizeWidth, resizeHeight) => {
@@ -248,6 +275,14 @@ function DownloadButtons() {
           SVG
         </FlatButton>
       </Show>
+      <FlatButton
+        class="inline-flex justify-center items-center px-3 py-2"
+        disabled={disabled()}
+        title="Copy to clipboard"
+        onClick={copyToClipboard}
+      >
+        <Copy size={20} />
+      </FlatButton>
       <FlatButton
         class="md:hidden inline-flex justify-center items-center gap-1 px-6 py-2"
         disabled={disabled()}

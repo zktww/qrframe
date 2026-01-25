@@ -25,6 +25,28 @@ export const toastError = (title: JSX.Element, description: JSX.Element) => {
   ));
 };
 
+export const toastSuccess = (title: JSX.Element, description?: JSX.Element) => {
+  toaster.clear();
+  toaster.show((props) => (
+    <Toast
+      class="border rounded-md p-2 text-white bg-green-800 data-[swipe=move]:translate-x-[var(--kb-toast-swipe-move-x)] data-[swipe=cancel]:(translate-x-0 transition-transform duration-200 ease-out) data-[swipe=end]:animate-swipe-out data-[opened]:animate-slide-in data-[closed]:animate-fade-out"
+      toastId={props.toastId}
+    >
+      <div class="flex justify-between">
+        <Toast.Title class="toast__title font-bold">{title}</Toast.Title>
+        <Toast.CloseButton class="toast__close-button">
+          <X />
+        </Toast.CloseButton>
+      </div>
+      {description && (
+        <Toast.Description class="toast__description">
+          {description}
+        </Toast.Description>
+      )}
+    </Toast>
+  ));
+};
+
 export function ErrorToasts() {
   return (
     <Toast.Region>
