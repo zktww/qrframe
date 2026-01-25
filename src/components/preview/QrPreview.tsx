@@ -1,8 +1,10 @@
+import Check from "lucide-solid/icons/check";
 import Copy from "lucide-solid/icons/copy";
 import Download from "lucide-solid/icons/download";
-import Share2 from "lucide-solid/icons/share-2";
 import Info from "lucide-solid/icons/info";
-import { Match, onCleanup, Show, Switch, type JSX } from "solid-js";
+import Share2 from "lucide-solid/icons/share-2";
+import X from "lucide-solid/icons/x";
+import { createSignal, Match, onCleanup, Show, Switch, type JSX } from "solid-js";
 import { QrState, useQrContext } from "~/lib/QrContext";
 import {
   ECL_LABELS,
@@ -157,8 +159,10 @@ function Metadata(props: MetadataProps) {
 function DownloadButtons() {
   const { output } = useQrContext();
   const { render, svgParentRefs, canvasRefs } = useRenderContext();
+  const [copyState, setCopyState] = createSignal<"idle" | "success" | "error">("idle");
   const filename = () => output().qr!.text.slice(0, 32);
   const disabled = () => output().state !== QrState.Ready;
+  let copyResetTimeout: number | undefined;
 
   const pngBlob = async (resizeWidth, resizeHeight) => {
     // roughly 20px per module, ranges from 500 to 3620px
@@ -237,13 +241,17 @@ function DownloadButtons() {
       }
 
       await navigator.clipboard.write([new ClipboardItem(clipboardData)]);
+      setCopyState("success");
       toastSuccess("Copied to clipboard");
     } catch (e) {
+      setCopyState("error");
       toastError(
         "Failed to copy",
         typeof e === "string" ? e : "Clipboard write failed"
       );
     }
+    clearTimeout(copyResetTimeout);
+    copyResetTimeout = window.setTimeout(() => setCopyState("idle"), 1500);
   }
 
   return (
@@ -281,7 +289,14 @@ function DownloadButtons() {
         title="Copy to clipboard"
         onClick={copyToClipboard}
       >
-        <Copy size={20} />
+        <Switch fallback={<Copy size={20} />}>
+          <Match when={copyState() === "success"}>
+            <Check size={20} class="text-green-500" />
+          </Match>
+          <Match when={copyState() === "error"}>
+            <X size={20} class="text-red-500" />
+          </Match>
+        </Switch>
       </FlatButton>
       <FlatButton
         class="md:hidden inline-flex justify-center items-center gap-1 px-6 py-2"
