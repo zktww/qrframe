@@ -1,11 +1,11 @@
 import Check from "lucide-solid/icons/check";
 import Copy from "lucide-solid/icons/copy";
 import Download from "lucide-solid/icons/download";
-import Info from "lucide-solid/icons/info";
 import Share2 from "lucide-solid/icons/share-2";
 import X from "lucide-solid/icons/x";
 import { createSignal, Match, onCleanup, Show, Switch, type JSX } from "solid-js";
 import { QrState, useQrContext } from "~/lib/QrContext";
+import { useRenderContext } from "~/lib/RenderContext";
 import {
   ECL_LABELS,
   ECL_NAMES,
@@ -16,8 +16,6 @@ import {
 import { FlatButton } from "../Button";
 import { toastError, toastSuccess } from "../ErrorToasts";
 import { SplitButton } from "../SplitButton";
-import { useRenderContext } from "~/lib/RenderContext";
-import { Popover } from "@kobalte/core/popover";
 
 type Props = {
   classList: JSX.CustomAttributes<HTMLDivElement>["classList"];
@@ -299,7 +297,7 @@ function DownloadButtons() {
         </Switch>
       </FlatButton>
       <FlatButton
-        class="md:hidden inline-flex justify-center items-center gap-1 px-6 py-2"
+        class="md:hidden justify-center items-center px-3 py-2"
         disabled={disabled()}
         title="Share"
         onClick={async () => {
@@ -337,20 +335,6 @@ function DownloadButtons() {
       >
         <Share2 size={20} />
       </FlatButton>
-      <Popover gutter={4}>
-        <Popover.Trigger
-          class="md:hidden border rounded-md hover:bg-fore-base/5 focus-visible:(outline-none ring-2 ring-fore-base ring-offset-2 ring-offset-back-base) p-2 disabled:(pointer-events-none opacity-50)"
-          disabled={disabled()}
-          title="QR Metadata"
-        >
-          <Info size={20} />
-        </Popover.Trigger>
-        <Popover.Portal>
-          <Popover.Content class="z-50 bg-back-base rounded-md border p-2 outline-none min-w-150px leading-tight">
-            <Metadata />
-          </Popover.Content>
-        </Popover.Portal>
-      </Popover>
     </div>
   );
 }

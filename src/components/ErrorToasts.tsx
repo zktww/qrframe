@@ -13,12 +13,12 @@ export const toastError = (title: JSX.Element, description: JSX.Element) => {
       persistent
     >
       <div class="flex justify-between">
-        <Toast.Title class="toast__title font-bold">{title}</Toast.Title>
-        <Toast.CloseButton class="toast__close-button">
+        <Toast.Title class="font-bold">{title}</Toast.Title>
+        <Toast.CloseButton>
           <X />
         </Toast.CloseButton>
       </div>
-      <Toast.Description class="toast__description">
+      <Toast.Description>
         {description}
       </Toast.Description>
     </Toast>
@@ -33,13 +33,13 @@ export const toastSuccess = (title: JSX.Element, description?: JSX.Element) => {
       toastId={props.toastId}
     >
       <div class="flex justify-between">
-        <Toast.Title class="toast__title font-bold">{title}</Toast.Title>
-        <Toast.CloseButton class="toast__close-button">
+        <Toast.Title class="font-bold">{title}</Toast.Title>
+        <Toast.CloseButton>
           <X />
         </Toast.CloseButton>
       </div>
       {description && (
-        <Toast.Description class="toast__description">
+        <Toast.Description>
           {description}
         </Toast.Description>
       )}
