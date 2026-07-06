@@ -13,12 +13,14 @@ import Minus from "lucide-solid/icons/minus";
 import Plus from "lucide-solid/icons/plus";
 import { createSignal, For, Index, Show } from "solid-js";
 import { Dynamic } from "solid-js/web";
+import { paramLabel, paramOptionLabel, useI18n } from "~/lib/i18n";
 import { PARAM_COMPONENTS } from "~/lib/params";
 import { useRenderContext } from "~/lib/RenderContext";
 import { FlatButton } from "../Button";
 
 export function ParamsEditor() {
   const { paramsSchema, params, setParams } = useRenderContext();
+  const { t } = useI18n();
   return (
     <div class="flex flex-col gap-2">
       <For each={Object.entries(paramsSchema())}>
@@ -26,13 +28,22 @@ export function ParamsEditor() {
           if (type === "array") {
             return <ArrayParam label={label} other={other} />;
           }
+          const inputProps =
+            type === "select"
+              ? {
+                  ...other,
+                  label: (value: string) => paramOptionLabel(t(), value),
+                }
+              : other;
           return (
             <>
               <div class="flex justify-between">
-                <div class="text-sm py-2 w-36 shrink-0">{label}</div>
+                <div class="text-sm py-2 w-36 shrink-0">
+                  {paramLabel(t(), label)}
+                </div>
                 <Dynamic
                   component={PARAM_COMPONENTS[type]}
-                  {...other}
+                  {...inputProps}
                   value={params[label]}
                   setValue={(v: any) => setParams(label, v)}
                 />
@@ -47,6 +58,14 @@ export function ParamsEditor() {
 
 function ArrayParam({ label, other }) {
   const { params, setParams } = useRenderContext();
+  const { t } = useI18n();
+  const innerProps = () =>
+    other.props.type === "select"
+      ? {
+          ...other.props,
+          label: (value: string) => paramOptionLabel(t(), value),
+        }
+      : other.props;
 
   // 0 is falsey and not a valid key
   const idFromIndex = (i) => i + 1;
@@ -72,7 +91,7 @@ function ArrayParam({ label, other }) {
   };
   return (
     <div class="grid grid-cols-[144px_1fr] justify-items-end gap-y-2">
-      <div class="text-sm py-2 w-36">{label}</div>
+      <div class="text-sm py-2 w-36">{paramLabel(t(), label)}</div>
       <div class="flex gap-1">
         <Show when={other.resizable}>
           <FlatButton
@@ -100,7 +119,7 @@ function ArrayParam({ label, other }) {
         <DragDropSensors />
         <SortableProvider
           ids={Array.from({ length: params[label].length }, (_, i) =>
-            idFromIndex(i)
+            idFromIndex(i),
           )}
         >
           <Index each={params[label]}>
@@ -125,7 +144,7 @@ function ArrayParam({ label, other }) {
                           other.props.type as keyof typeof PARAM_COMPONENTS
                         ]
                       }
-                      {...other.props}
+                      {...innerProps()}
                       value={v()}
                       setValue={(v: any) => setParams(label, i, v)}
                     />
@@ -150,7 +169,7 @@ function ArrayParam({ label, other }) {
                     other.props.type as keyof typeof PARAM_COMPONENTS
                   ]
                 }
-                {...other.props}
+                {...innerProps()}
                 value={params[label][indexFromId(activeId()!)]}
                 test={true}
               />

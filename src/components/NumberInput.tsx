@@ -3,6 +3,7 @@ import { Slider } from "@kobalte/core/slider";
 import ChevronUp from "lucide-solid/icons/chevron-up";
 import ChevronDown from "lucide-solid/icons/chevron-down";
 import { createSignal } from "solid-js";
+import { useI18n } from "~/lib/i18n";
 
 type Props = {
   min: number;
@@ -13,6 +14,7 @@ type Props = {
 };
 
 export function NumberInput(props: Props) {
+  const { t } = useI18n();
   const [rawValue, setRawValue] = createSignal(props.value);
 
   const safeSetValue = (value: number) => {
@@ -62,13 +64,13 @@ export function NumberInput(props: Props) {
           onBlur={() => setFocused(false)}
         />
         <NumberField.IncrementTrigger
-          aria-label="Increment"
+          aria-label={t().numberInput.increment}
           class="absolute right-1 top-1 h-3 w-3 bg-back-subtle rounded-t hover:(bg-fore-base/10)"
         >
           <ChevronUp size={12} />
         </NumberField.IncrementTrigger>
         <NumberField.DecrementTrigger
-          aria-label="Decrement"
+          aria-label={t().numberInput.decrement}
           class="absolute right-1 bottom-1 h-3 w-3 bg-back-subtle rounded-b hover:(bg-fore-base/10)"
         >
           <ChevronDown size={12} />

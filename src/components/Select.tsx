@@ -1,12 +1,13 @@
 import { Select as KSelect } from "@kobalte/core/select";
 import ChevronsUpDown from "lucide-solid/icons/chevrons-up-down";
-import { createSignal } from "solid-js";
+import { createSignal, type JSX } from "solid-js";
 import { FilledDot } from "./svg";
 
 type Props = {
   options: string[];
   value: string;
   setValue: (v: string) => void;
+  label?: (value: string) => JSX.Element;
 };
 
 export function Select(props: Props) {
@@ -32,7 +33,7 @@ export function Select(props: Props) {
         switch (e.key) {
           case "ArrowDown":
             props.setValue(
-              props.options[Math.min(index + 1, props.options.length - 1)]
+              props.options[Math.min(index + 1, props.options.length - 1)],
             );
             break;
           case "ArrowUp":
@@ -57,19 +58,24 @@ export function Select(props: Props) {
             props.setValue(itemProps.item.key);
           }}
         >
-          <KSelect.Label>{itemProps.item.rawValue}</KSelect.Label>
+          <KSelect.Label>
+            {props.label?.(itemProps.item.rawValue) ?? itemProps.item.rawValue}
+          </KSelect.Label>
           <KSelect.ItemIndicator>
-            <FilledDot size={20} class="-me-1"/>
+            <FilledDot size={20} class="-me-1" />
           </KSelect.ItemIndicator>
         </KSelect.Item>
       )}
     >
       <KSelect.Trigger class="leading-tight w-full inline-flex justify-between items-center gap-1 rounded-md border pl-3 pr-2 py-2 focus:(outline-none ring-2 ring-fore-base ring-offset-2 ring-offset-back-base) bg-back-base hover:bg-fore-base/5">
         <KSelect.Value>
-          {(state) => state.selectedOption() as string}
+          {(state) => {
+            const value = state.selectedOption() as string;
+            return props.label?.(value) ?? value;
+          }}
         </KSelect.Value>
         <KSelect.Icon>
-          <ChevronsUpDown size={16}/>
+          <ChevronsUpDown size={16} />
         </KSelect.Icon>
       </KSelect.Trigger>
       <KSelect.Portal>

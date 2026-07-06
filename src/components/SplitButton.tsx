@@ -4,6 +4,7 @@ import { Popover } from "@kobalte/core/popover";
 import ChevronDown from "lucide-solid/icons/chevron-down";
 import Download from "lucide-solid/icons/download";
 import { createSignal } from "solid-js";
+import { useI18n } from "~/lib/i18n";
 import { FillButton } from "./Button";
 
 type Props = {
@@ -12,6 +13,7 @@ type Props = {
   disabled: boolean;
 };
 export function SplitButton(props: Props) {
+  const { t } = useI18n();
   const [customWidth, setCustomWidth] = createSignal(2000);
   const [customHeight, setCustomHeight] = createSignal(2000);
 
@@ -32,14 +34,14 @@ export function SplitButton(props: Props) {
         disabled={props.disabled}
       >
         <Download size={20} />
-        <span class="md:hidden">Download</span>
+        <span class="md:hidden">{t().splitButton.download}</span>
         <span class="hidden md:inline">PNG</span>
       </Button>
       <Popover gutter={4} open={open()} onOpenChange={setOpen}>
         <Popover.Trigger
           class="group border rounded-md rounded-s-none hover:bg-fore-base/5 focus-visible:(outline-none ring-2 ring-fore-base ring-offset-2 ring-offset-back-base) p-2 disabled:(pointer-events-none opacity-50)"
           disabled={props.disabled}
-          aria-label="More download options"
+          aria-label={t().splitButton.moreDownloadOptions}
         >
           <ChevronDown
             size={20}
@@ -50,7 +52,9 @@ export function SplitButton(props: Props) {
           <Popover.Content class="z-50 bg-back-base rounded-md border p-2 outline-none min-w-150px leading-tight">
             <div class="flex flex-col gap-2">
               <div class="hidden md:contents">
-                <div class="text-sm font-bold">Select size</div>
+                <div class="text-sm font-bold">
+                  {t().splitButton.selectSize}
+                </div>
                 <FillButton class="w-full p-2" onClick={() => onPng(500, 500)}>
                   500x500
                 </FillButton>
@@ -62,13 +66,15 @@ export function SplitButton(props: Props) {
                 </FillButton>
               </div>
               <div class="contents md:hidden">
-                <div class="text-sm font-bold">Alternate file type</div>
+                <div class="text-sm font-bold">
+                  {t().splitButton.alternateFileType}
+                </div>
                 <FillButton class="w-full p-2" onClick={onSvg}>
                   SVG
                 </FillButton>
               </div>
               <hr />
-              <div class="text-sm font-bold">Custom size</div>
+              <div class="text-sm font-bold">{t().splitButton.customSize}</div>
               <div class="flex gap-2">
                 <MenuNumberInput
                   min={1}
@@ -87,7 +93,7 @@ export function SplitButton(props: Props) {
                 class="w-full p-2"
                 onClick={() => onPng(customWidth(), customHeight())}
               >
-                Download custom
+                {t().splitButton.downloadCustom}
               </FillButton>
             </div>
           </Popover.Content>

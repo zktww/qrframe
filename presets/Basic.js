@@ -18,11 +18,28 @@ export const paramsSchema = {
   },
   Shape: {
     type: "select",
-    options: ["Square-Circle", "Diamond-Squircle"],
+    options: [
+      "Square-Circle",
+      "Diamond-Squircle",
+      "Square",
+      "Rounded",
+      "Circle",
+      "Squircle",
+      "Diamond",
+      "Capsule",
+    ],
   },
   Frame: {
     type: "select",
-    options: ["None", "Corners"],
+    options: [
+      "None",
+      "Corners",
+      "Full",
+      "Rounded",
+      "Double",
+      "Brackets",
+      "Dashed",
+    ],
   },
   Roundness: {
     type: "number",
@@ -59,7 +76,8 @@ export async function renderSVG(qr, params) {
   const margin = params["Margin"];
   const fg = params["Foreground"];
   const bg = params["Background"];
-  const defaultShape = params["Shape"] === "Square-Circle";
+  const shape = params["Shape"];
+  const roundedFinder = shape !== "Diamond-Squircle";
   const roundness = params["Roundness"];
   const file = params["Logo"];
   const logoRatio = params["Logo size"];
@@ -71,18 +89,15 @@ export async function renderSVG(qr, params) {
 
   svg += `<g fill="${fg}">`;
 
-  if (params["Frame"] === "Corners") {
-    const bracketRadius = 2.2 * roundness;
-    const bracketStraight = 5 + margin / 2 - bracketRadius;
-    svg += brackets(
-      -margin / 2,
-      -margin / 2,
-      size - margin,
-      bracketRadius,
-      bracketStraight,
-      fg
-    );
-  }
+  svg += frame(
+    params["Frame"],
+    -margin / 2,
+    -margin / 2,
+    size - margin,
+    margin,
+    roundness,
+    fg,
+  );
 
   svg += `<path d="`;
   const lgRadius = 3.5 * roundness;
@@ -94,7 +109,7 @@ export async function renderSVG(qr, params) {
     [rowLen - 7, 0],
     [0, rowLen - 7],
   ]) {
-    if (defaultShape) {
+    if (roundedFinder) {
       svg += roundedRect(x, y, 7, lgRadius, true);
       svg += roundedRect(x + 1, y + 1, 5, mdRadius, false);
       svg += roundedRect(x + 2, y + 2, 3, smRadius, true);
@@ -110,7 +125,7 @@ export async function renderSVG(qr, params) {
   const dataRadius = (roundness * dataSize) / 2;
   const dataOffset = (1 - dataSize) / 2;
 
-  if (!defaultShape || !roundness) svg += `<path d="`;
+  svg += `<path d="`;
 
   const logoInner = Math.floor(((1 - logoRatio) * size) / 2 - margin);
   const logoUpper = rowLen - logoInner;
@@ -131,30 +146,23 @@ export async function renderSVG(qr, params) {
       if (!(module & Module.ON)) continue;
       if (module & Module.FINDER) continue;
 
-      if (defaultShape) {
-        if (roundness) {
-          svg += `<rect x="${fmt(x + dataOffset)}" y="${fmt(y + dataOffset)}" width="${dataSize}" height="${dataSize}" rx="${fmt(dataRadius)}"/>`;
-        } else {
-          svg += `M${x + dataOffset},${y + dataOffset}h${dataSize}v${dataSize}h-${dataSize}z`;
-        }
-      } else {
-        svg += squircle(
-          x + dataOffset,
-          y + dataOffset,
-          dataSize,
-          dataRadius,
-          true
-        );
-      }
+      svg += dataModule(
+        x + dataOffset,
+        y + dataOffset,
+        dataSize,
+        dataRadius,
+        shape,
+        roundness,
+      );
     }
   }
-  if (!defaultShape || !roundness) svg += `"/>`;
+  svg += `"/>`;
   svg += `</g>`;
 
   if (file != null) {
     const bytes = new Uint8Array(await file.arrayBuffer());
     const b64 = btoa(
-      Array.from(bytes, (byte) => String.fromCodePoint(byte)).join("")
+      Array.from(bytes, (byte) => String.fromCodePoint(byte)).join(""),
     );
     const logoSize = fmt(logoRatio * size);
     const logoOffset = fmt(((1 - logoRatio) * size) / 2 - margin);
@@ -167,6 +175,31 @@ export async function renderSVG(qr, params) {
 
 // reduce file bloat from floating point math
 const fmt = (n) => n.toFixed(2).replace(/.00$/, "");
+
+function dataModule(x, y, size, radius, shape, roundness) {
+  switch (shape) {
+    case "Circle": {
+      const r = fmt(size / 2);
+      return `M${fmt(x + size / 2)},${fmt(y)}a${r},${r} 0,0,0 0,${fmt(size)}a${r},${r} 0,0,0 0,-${fmt(size)}`;
+    }
+    case "Squircle":
+    case "Diamond-Squircle":
+      return squircle(x, y, size, radius, true);
+    case "Diamond": {
+      const half = fmt(size / 2);
+      return `M${fmt(x + size / 2)},${fmt(y)}l${half},${half}l-${half},${half}l-${half},-${half}z`;
+    }
+    case "Capsule":
+      return roundedBox(x, y + size * 0.2, size, size * 0.6, size * 0.3, true);
+    case "Rounded":
+    case "Square-Circle":
+      return roundness
+        ? roundedRect(x, y, size, radius, true)
+        : `M${fmt(x)},${fmt(y)}h${fmt(size)}v${fmt(size)}h-${fmt(size)}z`;
+    default:
+      return `M${fmt(x)},${fmt(y)}h${fmt(size)}v${fmt(size)}h-${fmt(size)}z`;
+  }
+}
 
 function squircle(x, y, width, handle, cw) {
   const half = fmt(width / 2);
@@ -183,6 +216,28 @@ function squircle(x, y, width, handle, cw) {
   return cw
     ? `M${fmt(x + width / 2)},${fmt(y)}c${h},0 ${half},${hInv1} ${half},${half}s${hInv2},${half} -${half},${half}s-${half},${hInv2} -${half},-${half}s${hInv1},-${half} ${half},-${half}`
     : `M${fmt(x + width / 2)},${fmt(y)}c-${h},0 -${half},${hInv1} -${half},${half}s${hInv1},${half} ${half},${half}s${half},${hInv2} ${half},-${half}s${hInv2},-${half} -${half},-${half}`;
+}
+
+function frame(type, x, y, width, margin, roundness, stroke) {
+  switch (type) {
+    case "Corners": {
+      const bracketRadius = 2.2 * roundness;
+      const bracketStraight = 5 + margin / 2 - bracketRadius;
+      return corners(x, y, width, bracketRadius, bracketStraight, stroke);
+    }
+    case "Full":
+      return `<rect x="${fmt(x)}" y="${fmt(y)}" width="${fmt(width)}" height="${fmt(width)}" fill="none" stroke="${stroke}" stroke-width="1"/>`;
+    case "Rounded":
+      return `<rect x="${fmt(x)}" y="${fmt(y)}" width="${fmt(width)}" height="${fmt(width)}" rx="${fmt(2 + 4 * roundness)}" fill="none" stroke="${stroke}" stroke-width="1"/>`;
+    case "Double":
+      return `<rect x="${fmt(x)}" y="${fmt(y)}" width="${fmt(width)}" height="${fmt(width)}" fill="none" stroke="${stroke}" stroke-width=".7"/><rect x="${fmt(x + 1.2)}" y="${fmt(y + 1.2)}" width="${fmt(width - 2.4)}" height="${fmt(width - 2.4)}" fill="none" stroke="${stroke}" stroke-width=".35"/>`;
+    case "Brackets":
+      return corners(x, y, width, 0.9 + 2 * roundness, 4.5, stroke);
+    case "Dashed":
+      return `<rect x="${fmt(x)}" y="${fmt(y)}" width="${fmt(width)}" height="${fmt(width)}" fill="none" stroke="${stroke}" stroke-width="1" stroke-dasharray="2 1.25"/>`;
+    default:
+      return "";
+  }
 }
 
 function roundedRect(x, y, width, radius, cw) {
@@ -205,7 +260,23 @@ function roundedRect(x, y, width, radius, cw) {
     : `M${fmt(x + radius)},${fmt(y)}a${r},${r} 0,0,0 -${r},${r}v${side}a${r},${r} 0,0,0 ${r},${r}h${side}a${r},${r} 0,0,0 ${r},-${r}v-${side}a${r},${r} 0,0,0 -${r},-${r}`;
 }
 
-function brackets(x, y, width, radius, straight, stroke) {
+function roundedBox(x, y, width, height, radius, cw) {
+  const r = Math.min(radius, width / 2, height / 2);
+  if (r <= 0) {
+    return cw
+      ? `M${fmt(x)},${fmt(y)}h${fmt(width)}v${fmt(height)}h-${fmt(width)}z`
+      : `M${fmt(x)},${fmt(y)}v${fmt(height)}h${fmt(width)}v-${fmt(height)}z`;
+  }
+
+  const hSide = fmt(width - 2 * r);
+  const vSide = fmt(height - 2 * r);
+  const rr = fmt(r);
+  return cw
+    ? `M${fmt(x + r)},${fmt(y)}h${hSide}a${rr},${rr} 0,0,1 ${rr},${rr}v${vSide}a${rr},${rr} 0,0,1 -${rr},${rr}h-${hSide}a${rr},${rr} 0,0,1 -${rr},-${rr}v-${vSide}a${rr},${rr} 0,0,1 ${rr},-${rr}`
+    : `M${fmt(x + r)},${fmt(y)}a${rr},${rr} 0,0,0 -${rr},${rr}v${vSide}a${rr},${rr} 0,0,0 ${rr},${rr}h${hSide}a${rr},${rr} 0,0,0 ${rr},-${rr}v-${vSide}a${rr},${rr} 0,0,0 -${rr},-${rr}`;
+}
+
+function corners(x, y, width, radius, straight, stroke) {
   const bracket = radius + straight;
   const side = fmt(width - 2 * bracket);
   const r = fmt(radius);

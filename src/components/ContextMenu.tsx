@@ -1,5 +1,6 @@
 import { ContextMenu } from "@kobalte/core/context-menu";
 import { type JSX } from "solid-js";
+import { useI18n } from "~/lib/i18n";
 
 type Props = {
   children: JSX.Element;
@@ -9,6 +10,8 @@ type Props = {
 };
 
 export function ContextMenuProvider(props: Props) {
+  const { t } = useI18n();
+
   return (
     <ContextMenu>
       {props.children}
@@ -28,7 +31,7 @@ export function ContextMenuProvider(props: Props) {
             onClick={props.onRename}
             disabled={props.disabled}
           >
-            Rename
+            {t().contextMenu.rename}
           </ContextMenu.Item>
           <ContextMenu.Item
             classList={{
@@ -39,7 +42,7 @@ export function ContextMenuProvider(props: Props) {
             onClick={props.onDelete}
             disabled={props.disabled}
           >
-            Delete
+            {t().contextMenu.delete}
           </ContextMenu.Item>
         </ContextMenu.Content>
       </ContextMenu.Portal>

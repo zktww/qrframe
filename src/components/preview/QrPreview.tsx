@@ -3,7 +3,15 @@ import Copy from "lucide-solid/icons/copy";
 import Download from "lucide-solid/icons/download";
 import Share2 from "lucide-solid/icons/share-2";
 import X from "lucide-solid/icons/x";
-import { createSignal, Match, onCleanup, Show, Switch, type JSX } from "solid-js";
+import {
+  createSignal,
+  Match,
+  onCleanup,
+  Show,
+  Switch,
+  type JSX,
+} from "solid-js";
+import { useI18n } from "~/lib/i18n";
 import { QrState, useQrContext } from "~/lib/QrContext";
 import { useRenderContext } from "~/lib/RenderContext";
 import {
@@ -24,6 +32,7 @@ type Props = {
 
 export function QrPreview(props: Props) {
   const { inputQr, output } = useQrContext();
+  const { t } = useI18n();
 
   return (
     <div classList={props.classList} ref={props.ref}>
@@ -50,13 +59,13 @@ export function QrPreview(props: Props) {
                   </svg>
                 </Match>
                 <Match when={output().state === QrState.ExceedsMaxCapacity}>
-                  Data exceeds max capacity
+                  {t().preview.dataExceedsCapacity}
                 </Match>
                 <Match when={output().state === QrState.InvalidEncoding}>
-                  {`Input cannot be encoded in ${
+                  {t().preview.invalidEncoding(
                     // @ts-expect-error props.mode not null b/c InvalidEncoding requires mode
-                    MODE_NAMES[inputQr.mode + 1]
-                  } mode`}
+                    t().options.mode[MODE_NAMES[inputQr.mode + 1]],
+                  )}
                 </Match>
               </Switch>
             </div>
@@ -118,34 +127,38 @@ type MetadataProps = {
 
 function Metadata(props: MetadataProps) {
   const { output } = useQrContext();
+  const { t } = useI18n();
   return (
     <div class={props.class}>
-      <div class="font-bold text-sm pb-2">QR Metadata</div>
+      <div class="font-bold text-sm pb-2">{t().preview.metadataTitle}</div>
       <Show when={output().state === QrState.Ready}>
         <div class="grid grid-cols-2 gap-2 text-sm">
           <div class="">
-            Version
+            {t().preview.version}
             <div class="font-bold text-base">
-              {output().qr!.version} ({output().qr!.version * 4 + 17}x
-              {output().qr!.version * 4 + 17} matrix)
+              {output().qr!.version} (
+              {t().preview.matrix(output().qr!.version * 4 + 17)})
             </div>
           </div>
           <div class="">
-            Error tolerance{" "}
+            {t().preview.errorTolerance}{" "}
             <div class="font-bold text-base whitespace-pre">
-              {ECL_NAMES[output().qr!.ecl]} ({ECL_LABELS[output().qr!.ecl]})
+              {t().options.ecl[ECL_NAMES[output().qr!.ecl]]} (
+              {ECL_LABELS[output().qr!.ecl]})
             </div>
           </div>
           <div class="">
-            Mask{" "}
+            {t().preview.mask}{" "}
             <span class="font-bold text-base">
-              {MASK_KEY[output().qr!.mask]}
+              {MASK_KEY[output().qr!.mask] === "Auto"
+                ? t().options.mask.Auto
+                : MASK_KEY[output().qr!.mask]}
             </span>
           </div>
           <div class="">
-            Encoding{" "}
+            {t().preview.encoding}{" "}
             <span class="font-bold text-base">
-              {MODE_KEY[output().qr!.mode]}
+              {t().options.mode[MODE_KEY[output().qr!.mode]]}
             </span>
           </div>
         </div>
@@ -157,7 +170,10 @@ function Metadata(props: MetadataProps) {
 function DownloadButtons() {
   const { output } = useQrContext();
   const { render, svgParentRefs, canvasRefs } = useRenderContext();
-  const [copyState, setCopyState] = createSignal<"idle" | "success" | "error">("idle");
+  const { t } = useI18n();
+  const [copyState, setCopyState] = createSignal<"idle" | "success" | "error">(
+    "idle",
+  );
   const filename = () => output().qr!.text.slice(0, 32);
   const disabled = () => output().state !== QrState.Ready;
   let copyResetTimeout: number | undefined;
@@ -198,7 +214,7 @@ function DownloadButtons() {
       const url = URL.createObjectURL(
         new Blob([svgParentRefs[0].innerHTML], {
           type: "image/svg+xml",
-        })
+        }),
       );
       const img = new Image();
       img.src = url;
@@ -208,7 +224,7 @@ function DownloadButtons() {
     }
 
     return new Promise((resolve) =>
-      outCanvas.toBlob(resolve)
+      outCanvas.toBlob(resolve),
     ) as Promise<Blob | null>;
   };
 
@@ -216,7 +232,7 @@ function DownloadButtons() {
     const url = URL.createObjectURL(
       new Blob([svgParentRefs[0].innerHTML], {
         type: "image/svg+xml",
-      })
+      }),
     );
     download(url, `${filename()}.svg`);
     URL.revokeObjectURL(url);
@@ -225,32 +241,31 @@ function DownloadButtons() {
   const copyToClipboard = async () => {
     try {
       const png = await pngBlob(0, 0);
-      if (png == null) throw "Failed to create PNG";
+      if (png == null) throw t().preview.failedToCreateImage;
 
       const clipboardData: Record<string, Blob> = {
         "image/png": png,
       };
       if (render()?.type === "svg") {
         // The mimetype of "image/svg+xml" is not able to be written to clipboard, but apps like Figma accept "text/plain" SVG data
-        clipboardData["text/plain"] = new Blob(
-          [svgParentRefs[0].innerHTML],
-          { type: "text/plain" }
-        );
+        clipboardData["text/plain"] = new Blob([svgParentRefs[0].innerHTML], {
+          type: "text/plain",
+        });
       }
 
       await navigator.clipboard.write([new ClipboardItem(clipboardData)]);
       setCopyState("success");
-      toastSuccess("Copied to clipboard");
+      toastSuccess(t().preview.copied);
     } catch (e) {
       setCopyState("error");
       toastError(
-        "Failed to copy",
-        typeof e === "string" ? e : "Clipboard write failed"
+        t().preview.failedToCopy,
+        typeof e === "string" ? e : t().preview.clipboardWriteFailed,
       );
     }
     clearTimeout(copyResetTimeout);
     copyResetTimeout = window.setTimeout(() => setCopyState("idle"), 1500);
-  }
+  };
 
   return (
     <div class="flex gap-2 md:(grid grid-cols-[1fr_1fr_auto])">
@@ -265,7 +280,7 @@ function DownloadButtons() {
             download(url, `${filename()}.png`);
             URL.revokeObjectURL(url);
           } catch (e) {
-            toastError("Failed to create image", e as string);
+            toastError(t().preview.failedToCreateImage, e as string);
             return;
           }
         }}
@@ -284,7 +299,7 @@ function DownloadButtons() {
       <FlatButton
         class="inline-flex justify-center items-center px-3 py-2"
         disabled={disabled()}
-        title="Copy to clipboard"
+        title={t().preview.copyToClipboard}
         onClick={copyToClipboard}
       >
         <Switch fallback={<Copy size={20} />}>
@@ -299,7 +314,7 @@ function DownloadButtons() {
       <FlatButton
         class="md:hidden justify-center items-center px-3 py-2"
         disabled={disabled()}
-        title="Share"
+        title={t().preview.share}
         onClick={async () => {
           let blob;
           try {
@@ -307,8 +322,8 @@ function DownloadButtons() {
             if (blob == null) throw "toBlob returned null";
           } catch (e) {
             toastError(
-              "Failed to create image",
-              typeof e === "string" ? e : "pngBlob failed"
+              t().preview.failedToCreateImage,
+              typeof e === "string" ? e : "pngBlob failed",
             );
             return;
           }
@@ -327,8 +342,8 @@ function DownloadButtons() {
           } catch (e) {
             console.log(e);
             toastError(
-              "Native sharing failed",
-              "File sharing not supported by browser"
+              t().preview.nativeSharingFailed,
+              t().preview.fileSharingUnsupported,
             );
           }
         }}

@@ -20,6 +20,7 @@ import {
 import { PRESET_CODE } from "~/lib/presets";
 import { useQrContext } from "~/lib/QrContext";
 import { useRenderContext, type RenderType } from "~/lib/RenderContext";
+import { presetLabel, useI18n } from "~/lib/i18n";
 import Tutorial from "../../../presets/Tutorial?raw";
 import { FillButton, FlatButton } from "../Button";
 import { Collapsible } from "../Collapsible";
@@ -47,7 +48,7 @@ type Props = {
 
 const FUNC_KEYS = "funcKeys";
 
-const VERSION = 2;
+const VERSION = 5;
 const PRESETS_VERSION = "presetsVersion";
 
 const LOADING_THUMB = `data:image/svg+xml,<svg viewBox="-12 -12 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M10.14,1.16a11,11,0,0,0-9,8.92A1.59,1.59,0,0,0,2.46,12,1.52,1.52,0,0,0,4.11,10.7a8,8,0,0,1,6.66-6.61A1.42,1.42,0,0,0,12,2.69h0A1.57,1.57,0,0,0,10.14,1.16Z"><animateTransform attributeName="transform" type="rotate" dur="0.75s" values="0 12 12;360 12 12" repeatCount="indefinite"/></path></svg>`;
@@ -62,6 +63,7 @@ function isPreset(key: string): key is keyof typeof PRESET_CODE {
 }
 
 export function Editor(props: Props) {
+  const { t } = useI18n();
   const { setInputQr } = useQrContext();
   const {
     paramsSchema,
@@ -91,7 +93,7 @@ export function Editor(props: Props) {
       // preset CAN error out, e.g. when importing 3rd party dep
       try {
         const { type, url, parsedParamsSchema } = await importCode(
-          PRESET_CODE[key]
+          PRESET_CODE[key],
         );
         asyncUpdateThumbnail(key, type, url, parsedParamsSchema);
       } catch (e) {
@@ -136,7 +138,7 @@ export function Editor(props: Props) {
     _setFuncKeys(...args);
     localStorage.setItem(
       FUNC_KEYS,
-      funcKeys.filter((key) => !presetKeys.includes(key)).join(",")
+      funcKeys.filter((key) => !presetKeys.includes(key)).join(","),
     );
   };
 
@@ -147,7 +149,7 @@ export function Editor(props: Props) {
     } else {
       let storedCode = localStorage.getItem(key);
       if (storedCode == null) {
-        storedCode = `Failed to load ${key}`;
+        storedCode = t().editor.failedToLoad(key);
       }
       saveAndRun(storedCode, false, false);
     }
@@ -170,12 +172,12 @@ export function Editor(props: Props) {
     }
     if (typeof renderCanvas === "function") {
       if (type) {
-        throw new Error("renderSVG and renderCanvas cannot both be exported");
+        throw new Error(t().editor.bothRenderExports);
       }
       type = "canvas";
     }
     if (!type) {
-      throw new Error("renderSVG or renderCanvas must be exported");
+      throw new Error(t().editor.missingRenderExport);
     }
 
     // TODO see impl, user set default and props might be wrong
@@ -187,7 +189,7 @@ export function Editor(props: Props) {
   const saveAndRun = async (
     code: string,
     save: boolean,
-    thumbnail: boolean
+    thumbnail: boolean,
   ) => {
     try {
       setCode(code);
@@ -226,14 +228,14 @@ export function Editor(props: Props) {
     key: string,
     type: "svg" | "canvas",
     url: string,
-    parsedParamsSchema: ParamsSchema
+    parsedParamsSchema: ParamsSchema,
   ) => {
     if (thumbWorker == null) setupThumbWorker();
 
     const timeoutId = setTimeout(() => {
       console.error(
         `Thumbnail took longer than 5 seconds, timed out!`,
-        timeoutId
+        timeoutId,
       );
       timeoutIdMap.delete(timeoutId);
       if (thumbWorker != null) {
@@ -312,14 +314,14 @@ export function Editor(props: Props) {
         onBlur={props.onTextBlur}
         ref={props.textRef}
       />
-      <Collapsible trigger="Data">
+      <Collapsible trigger={t().editor.data}>
         <Settings />
       </Collapsible>
-      <Collapsible trigger="Render" defaultOpen>
+      <Collapsible trigger={t().editor.render} defaultOpen>
         <ControlledDialog
           open={renameOpen()}
           setOpen={setRenameOpen}
-          title={`Rename ${dialogKey()}`}
+          title={t().editor.renameTitle(dialogKey())}
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
           {(close) => {
@@ -367,14 +369,16 @@ export function Editor(props: Props) {
                   onKeyDown={(e) => e.key === "Enter" && onSubmit()}
                 />
                 <div class="absolute p-1 text-sm text-red-600">
-                  <Show when={duplicate()}>{rename()} already exists.</Show>
+                  <Show when={duplicate()}>
+                    {t().editor.duplicateName(rename())}
+                  </Show>
                 </div>
                 <FillButton
                   class="px-3 py-2 float-right mt-4"
                   // input onChange runs after focus lost, so onMouseDown is too early
                   onClick={onSubmit}
                 >
-                  Confirm
+                  {t().editor.confirm}
                 </FillButton>
               </>
             );
@@ -384,15 +388,13 @@ export function Editor(props: Props) {
           open={deleteOpen()}
           // This is controlled, so it will never be called with true
           setOpen={setDeleteOpen}
-          title={`Delete ${dialogKey()}`}
+          title={t().editor.deleteTitle(dialogKey())}
         >
           {(close) => {
             const key = dialogKey();
             return (
               <>
-                <p class="mb-4 text-sm">
-                  Are you sure you want to delete this function?
-                </p>
+                <p class="mb-4 text-sm">{t().editor.deleteConfirm}</p>
                 <div class="flex justify-end gap-2">
                   <FillButton
                     onMouseDown={() => {
@@ -406,9 +408,11 @@ export function Editor(props: Props) {
                       close();
                     }}
                   >
-                    Confirm
+                    {t().editor.confirm}
                   </FillButton>
-                  <FlatButton onMouseDown={close}>Cancel</FlatButton>
+                  <FlatButton onMouseDown={close}>
+                    {t().editor.cancel}
+                  </FlatButton>
                 </div>
               </>
             );
@@ -417,12 +421,16 @@ export function Editor(props: Props) {
         <div class="py-4 flex flex-col gap-4">
           <div class="h-[180px] md:(h-unset)">
             <div class="flex justify-between">
-              <div class="text-sm py-2 border border-transparent">Presets</div>
+              <div class="text-sm py-2 border border-transparent">
+                {t().editor.presets}
+              </div>
               <div class="flex gap-2">
-                <div class="flex items-center font-bold">{renderKey()}</div>
+                <div class="flex items-center font-bold">
+                  {presetLabel(t(), renderKey())}
+                </div>
                 <Show when={!presetKeys.includes(renderKey())}>
                   <DialogButton
-                    title="Rename"
+                    title={t().editor.rename}
                     onClick={() => {
                       batch(() => {
                         setDialogKey(renderKey());
@@ -433,7 +441,7 @@ export function Editor(props: Props) {
                     <Pencil class="w-5 h-5" />
                   </DialogButton>
                   <DialogButton
-                    title="Delete"
+                    title={t().editor.delete}
                     onClick={() => {
                       batch(() => {
                         setDialogKey(renderKey());
@@ -458,7 +466,7 @@ export function Editor(props: Props) {
                       <Preview
                         onContextMenu={() => setDialogKey(key)}
                         onClick={() => setExistingKey(key)}
-                        label={key}
+                        label={presetLabel(t(), key)}
                         active={renderKey() === key}
                       >
                         <img class="rounded-sm" src={thumbs[key]} alt="" />
@@ -469,7 +477,7 @@ export function Editor(props: Props) {
               </ContextMenuProvider>
               <Preview
                 onClick={() => createAndSelectFunc("custom", Tutorial)}
-                label="Create new"
+                label={t().editor.createNew}
                 active={false}
               >
                 <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -485,12 +493,12 @@ export function Editor(props: Props) {
           <ParamsEditor />
           <div>
             <Switch
-              label="Code editor"
+              label={t().editor.codeEditor}
               value={showCode()}
               setValue={setShowCode}
             />
             <Show when={showCode()}>
-              <Suspense fallback={<p>Loading...</p>}>
+              <Suspense fallback={<p>{t().editor.loading}</p>}>
                 <CodeEditor
                   initialValue={code()}
                   onSave={(code, updateThumbnail) => {

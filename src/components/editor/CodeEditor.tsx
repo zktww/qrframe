@@ -13,6 +13,7 @@ import {
 import { vim } from "@replit/codemirror-vim";
 
 import { Button } from "@kobalte/core/button";
+import { useI18n } from "~/lib/i18n";
 import { debounce } from "~/lib/util";
 import { AllowPasteDialog } from "./AllowPasteDialog";
 
@@ -25,6 +26,7 @@ const VIM_MODE_KEY = "vimMode";
 const ALLOW_PASTE_KEY = "allowPaste";
 
 export function CodeEditor(props: Props) {
+  const { t } = useI18n();
   let parent!: HTMLDivElement;
   let view: EditorView;
   let modeComp = new Compartment();
@@ -87,7 +89,7 @@ export function CodeEditor(props: Props) {
         // if (!u.docChanged) return;
         const newDirty = u.state.doc.toString() !== props.initialValue;
         setDirty(newDirty);
-      }, 300)
+      }, 300),
     ),
   ];
 
@@ -123,7 +125,7 @@ export function CodeEditor(props: Props) {
           head: 0,
           anchor: 0,
         },
-      })
+      }),
     );
 
     const currVimMode = untrack(vimMode);
@@ -155,7 +157,7 @@ export function CodeEditor(props: Props) {
       />
       <div class="flex justify-end gap-4 py-2">
         <label class="flex items-center gap-1 text-sm">
-          Vim mode
+          {t().codeEditor.vimMode}
           <input
             class="h-4 w-4"
             type="checkbox"
@@ -164,7 +166,7 @@ export function CodeEditor(props: Props) {
           />
         </label>
         <label class="flex items-center gap-1 text-sm">
-          Update thumbnail
+          {t().codeEditor.updateThumbnail}
           <input
             class="h-4 w-4"
             type="checkbox"
@@ -179,7 +181,7 @@ export function CodeEditor(props: Props) {
           }
           class="bg-green-700 border rounded-md hover:bg-green-700/90 focus-visible:(outline-none ring-2 ring-fore-base ring-offset-2 ring-offset-back-base) disabled:(bg-transparent text-fore-base pointer-events-none opacity-50) transition-colors px-3 py-1 min-w-150px"
         >
-          {dirty() ? "Save" : "No changes"}
+          {dirty() ? t().codeEditor.save : t().codeEditor.noChanges}
         </Button>
       </div>
       <div ref={parent!}></div>

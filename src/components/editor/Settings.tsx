@@ -1,4 +1,5 @@
 import { For } from "solid-js";
+import { useI18n } from "~/lib/i18n";
 import { useQrContext } from "~/lib/QrContext";
 import {
   ECL_NAMES,
@@ -17,24 +18,28 @@ import { Switch } from "../Switch";
 
 export function Settings() {
   const { inputQr, setInputQr } = useQrContext();
+  const { t } = useI18n();
 
   return (
     <div class="flex flex-col gap-2 py-4">
       <div class="flex justify-between">
-        <div class="text-sm py-2">Encoding mode</div>
+        <div class="text-sm py-2">{t().settings.encodingMode}</div>
         <Select
           options={MODE_NAMES}
           value={MODE_KEY[inputQr.mode!]}
           setValue={(name) => setInputQr("mode", MODE_VALUE[name])}
+          label={(name) => t().options.mode[name]}
         />
       </div>
       <div class="">
         <div class="flex justify-between">
           <div class="text-sm py-2">
-            {inputQr.strictVersion ? "Version" : "Min version"}
+            {inputQr.strictVersion
+              ? t().settings.version
+              : t().settings.minVersion}
           </div>
           <Switch
-            label="Strict"
+            label={t().settings.strict}
             value={inputQr.strictVersion}
             setValue={(v) => setInputQr("strictVersion", v)}
           />
@@ -49,10 +54,12 @@ export function Settings() {
       <div>
         <div class="flex justify-between">
           <div class="text-sm py-2">
-            {inputQr.strictEcl ? "Error tolerance" : "Min error tolerance"}
+            {inputQr.strictEcl
+              ? t().settings.errorTolerance
+              : t().settings.minErrorTolerance}
           </div>
           <Switch
-            label="Strict"
+            label={t().settings.strict}
             value={inputQr.strictEcl}
             setValue={(v) => setInputQr("strictEcl", v)}
           />
@@ -62,19 +69,25 @@ export function Settings() {
           setValue={(v) => setInputQr("minEcl", ECL_VALUE[v])}
         >
           <For each={ECL_NAMES}>
-            {(name) => <ButtonGroupItem value={name}>{name}</ButtonGroupItem>}
+            {(name) => (
+              <ButtonGroupItem value={name}>
+                {t().options.ecl[name]}
+              </ButtonGroupItem>
+            )}
           </For>
         </ButtonGroup>
       </div>
       <div>
-        <div class="text-sm py-2">Mask pattern</div>
+        <div class="text-sm py-2">{t().settings.maskPattern}</div>
         <ButtonGroup
           value={MASK_KEY[inputQr.mask!]}
           setValue={(name) => setInputQr("mask", MASK_VALUE[name])}
         >
           <For each={MASK_NAMES}>
             {(value) => (
-              <ButtonGroupItem value={value}>{value}</ButtonGroupItem>
+              <ButtonGroupItem value={value}>
+                {value === "Auto" ? t().options.mask.Auto : value}
+              </ButtonGroupItem>
             )}
           </For>
         </ButtonGroup>

@@ -11,6 +11,7 @@ import { createStore, unwrap, type SetStoreFunction } from "solid-js/store";
 import { type Params, type ParamsSchema } from "./params";
 import { clearToasts, toastError } from "~/components/ErrorToasts";
 import { QrState, useQrContext, type OutputQr } from "./QrContext";
+import { useI18n } from "./i18n";
 
 export const RenderContext = createContext<{
   render: Accessor<Render | null>;
@@ -32,7 +33,7 @@ export const RenderContext = createContext<{
 export type RenderCanvas = (
   qr: OutputQr,
   params: Params,
-  ctx: CanvasRenderingContext2D
+  ctx: CanvasRenderingContext2D,
 ) => void;
 
 export type RenderSVG = (qr: OutputQr, params: Params) => string;
@@ -47,6 +48,7 @@ type Render = {
 
 export function RenderContextProvider(props: { children: JSX.Element }) {
   const { output } = useQrContext();
+  const { t } = useI18n();
 
   const [renderKey, setRenderKey] = createSignal<string>("Square");
   const [render, setRender] = createSignal<Render | null>(null);
@@ -59,7 +61,7 @@ export function RenderContextProvider(props: { children: JSX.Element }) {
     if (e == null) {
       clearToasts();
     } else {
-      toastError("Render failed", e);
+      toastError(t().render.failed, e);
     }
     _setError(e);
   };
@@ -82,7 +84,7 @@ export function RenderContextProvider(props: { children: JSX.Element }) {
   // I could expose multiple versions of the set functions
   // but that seems much less maintainable that this
   createEffect(async () => {
-    if (output().state !== QrState.Ready) return
+    if (output().state !== QrState.Ready) return;
     const r = render();
 
     // Track store without leaking extra params
@@ -107,7 +109,7 @@ export function RenderContextProvider(props: { children: JSX.Element }) {
     const timeoutId = setTimeout(() => {
       console.error(
         `Preview took longer than 5 seconds, timed out!`,
-        timeoutId
+        timeoutId,
       );
       timeoutIdSet.delete(timeoutId);
       if (worker != null) {
