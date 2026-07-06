@@ -308,8 +308,8 @@ export function Editor(props: Props) {
   return (
     <div class={props.class}>
       <TextareaInput
-        placeholder="https://qrframe.kylezhe.ng"
-        setValue={(s) => setInputQr("text", s || "https://qrframe.kylezhe.ng")}
+        placeholder="https://qc.zktww.cn/"
+        setValue={(s) => setInputQr("text", s || "https://qc.zktww.cn/")}
         onFocus={props.onTextFocus}
         onBlur={props.onTextBlur}
         ref={props.textRef}
