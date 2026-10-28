@@ -228,6 +228,12 @@ via `wrangler.toml` (the old build used `dist`). Existing `pnpm preview` and
 `pnpm deploy` commands are retained. Configure the hosting build environment to
 use a supported Node.js version.
 
+Vercel deploys the same static files using `vercel.json`. The framework preset is
+explicitly set to Other and the output directory to `.output/public`, so an older
+SolidStart project setting does not publish the wrong build output. After a
+deployment, verify the actual site URL loads the editor; a successful build alone
+does not verify that the site is being served.
+
 Serving under a nonroot path is broken until https://github.com/solidjs/solid-start/pull/2152 is merged and released.
 
 Once fixed update `@solidjs/vite-plugin-nitro-2` and modify `base` in `vite.config.ts`.
