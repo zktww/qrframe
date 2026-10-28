@@ -24,7 +24,6 @@ const messages = {
     footer: {
       bugs: "反馈问题",
       source: "源代码",
-      blog: "博客文章",
       language: "语言",
     },
     bugs: {
@@ -331,7 +330,6 @@ const messages = {
     footer: {
       bugs: "report bugs",
       source: "source code",
-      blog: "blog post",
       language: "Language",
     },
     bugs: {
