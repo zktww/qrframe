@@ -29,14 +29,14 @@ function Footer() {
     <footer class="text-sm flex flex-wrap justify-center items-center gap-4 px-4 py-8">
       <a
         class="font-semibold hover:text-fore-base/80 focus-visible:(outline-none ring-2 ring-fore-base ring-offset-2 ring-offset-back-base)"
-        href="https://github.com/zhengkyl/qrframe/issues"
+        href="https://github.com/zktww/qrframe/issues"
         target="_blank"
       >
         {t().footer.bugs}
       </a>
       <a
         class="font-semibold hover:text-fore-base/80 focus-visible:(outline-none ring-2 ring-fore-base ring-offset-2 ring-offset-back-base)"
-        href="https://github.com/zhengkyl/qrframe"
+        href="https://github.com/zktww/qrframe"
         target="_blank"
       >
         {t().footer.source}
