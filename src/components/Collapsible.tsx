@@ -5,7 +5,7 @@ import type { JSX } from "solid-js";
 type Props = {
   trigger: string;
   children: JSX.Element;
-  defaultOpen?: boolean
+  defaultOpen?: boolean;
 };
 export function Collapsible(props: Props) {
   return (

@@ -20,4 +20,4 @@ function splitmix32(a) {
     return ((t = t ^ (t >>> 15)) >>> 0) / 4294967296;
   };
 }
-export { splitmix32 as getSeededRand }
+export { splitmix32 as getSeededRand };

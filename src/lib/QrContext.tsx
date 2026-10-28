@@ -1,68 +1,38 @@
-import {
-  createContext,
-  createMemo,
-  createSignal,
-  useContext,
-  type Accessor,
-  type JSX,
-} from "solid-js";
-import init, {
-  ECL,
-  Mode,
-  Mask,
-  QrError,
-  QrOptions,
-  Version,
-  generate,
-} from "fuqr";
+import { ByteEncoder, FuriousQrError, Mask, generateWithEncoder, type Ecl } from "furious-qr";
+import { AlphanumericEncoder, MixedEncoder, NumericEncoder } from "furious-qr/extras/encoders";
+import { createContext, createMemo, useContext, type Accessor, type JSX } from "solid-js";
 import { createStore, type SetStoreFunction } from "solid-js/store";
-import { isServer } from "solid-js/web";
+import type { EncoderName } from "./options";
 
 type InputQr = {
   text: string;
   minVersion: number;
-  strictVersion: boolean;
-  minEcl: ECL;
-  strictEcl: boolean;
-  mode: Mode | null;
-  mask: Mask | null;
+  exactVersion: boolean;
+  minEcl: Ecl;
+  exactEcl: boolean;
+  encoder: EncoderName;
+  mask: Mask;
 };
 
 export type OutputQr = Readonly<{
   text: string;
   version: number;
-  ecl: ECL;
-  mode: Mode;
+  ecl: Ecl;
   mask: Mask;
   matrix: Uint8Array;
 }>;
 
 type Output =
   | {
-      state: QrState.Ready;
-      qr: Readonly<{
-        text: string;
-        version: number;
-        ecl: ECL;
-        mode: Mode;
-        mask: Mask;
-        matrix: Uint8Array;
-      }>;
+      text: string;
+      qr: OutputQr;
+      err: null;
     }
   | {
-      state:
-        | QrState.Loading
-        | QrState.InvalidEncoding
-        | QrState.ExceedsMaxCapacity;
+      text: string;
       qr: null;
+      err: FuriousQrError;
     };
-
-export enum QrState {
-  InvalidEncoding = QrError.InvalidEncoding,
-  ExceedsMaxCapacity = QrError.ExceedsMaxCapacity,
-  Loading = 2,
-  Ready = 3,
-}
 
 export const QrContext = createContext<{
   inputQr: InputQr;
@@ -74,50 +44,49 @@ export function QrContextProvider(props: { children: JSX.Element }) {
   const [inputQr, setInputQr] = createStore<InputQr>({
     text: "https://qc.zktww.cn/",
     minVersion: 1,
-    strictVersion: false,
-    minEcl: ECL.Low,
-    strictEcl: false,
-    mode: null,
-    mask: null,
+    exactVersion: false,
+    minEcl: 0,
+    exactEcl: false,
+    encoder: "Byte",
+    mask: 2,
   });
 
-  const [initDone, setInitDone] = createSignal(false);
-
-  if (!isServer) {
-    init().then(() => {
-      setInitDone(true);
-    });
-  }
-
   const output = createMemo(() => {
-    if (!initDone()) {
-      return {
-        state: QrState.Loading,
-        qr: null,
-      };
-    }
-
     try {
-      // NOTE: WASM ptrs (QrOptions, Version) become null after leaving scope
-      const qrOptions = new QrOptions()
-        .min_version(new Version(inputQr.minVersion))
-        .strict_version(inputQr.strictVersion)
-        .min_ecl(inputQr.minEcl)
-        .strict_ecl(inputQr.strictEcl)
-        .mask(inputQr.mask!) // null instead of undefined (wasm-pack type)
-        .mode(inputQr.mode!); // null instead of undefined (wasm-pack type)
-
+      let encoder;
+      switch (inputQr.encoder) {
+        case "Byte":
+          encoder = new ByteEncoder(inputQr.text);
+          break;
+        case "Alphanumeric":
+          encoder = new AlphanumericEncoder(inputQr.text);
+          break;
+        case "Numeric":
+          encoder = new NumericEncoder(inputQr.text);
+          break;
+        case "Multi-segment":
+          encoder = new MixedEncoder(inputQr.text);
+          break;
+        default:
+          encoder = new ByteEncoder(inputQr.text);
+      }
+      const qr = generateWithEncoder(encoder, {
+        minVersion: inputQr.minVersion,
+        maxVersion: inputQr.exactVersion ? inputQr.minVersion : 40,
+        minEcl: inputQr.minEcl,
+        maxEcl: inputQr.exactEcl ? inputQr.minEcl : 3,
+        mask: inputQr.mask,
+      });
       return {
-        state: QrState.Ready,
-        qr: {
-          text: inputQr.text,
-          ...generate(inputQr.text, qrOptions),
-        },
+        text: inputQr.text,
+        qr: { ...qr, text: inputQr.text },
+        err: null,
       };
     } catch (e) {
       return {
-        state: e as QrState,
+        text: inputQr.text,
         qr: null,
+        err: e as FuriousQrError,
       };
     }
   });

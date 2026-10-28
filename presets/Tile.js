@@ -1,4 +1,4 @@
-import { Module } from "https://qrframe.kylezhe.ng/utils.js";
+import { Module } from "qrframe";
 
 export const paramsSchema = {
   Margin: {
@@ -87,23 +87,12 @@ export function renderSVG(qr, params) {
         x >= margin - inner &&
         x < rowLen - margin + inner
       ) {
-        if (
-          y >= margin &&
-          y < rowLen - margin &&
-          x >= margin &&
-          x < rowLen - margin
-        ) {
-          newMatrix[y * rowLen + x] =
-            qr.matrix[(y - margin) * qrRowLen + x - margin];
+        if (y >= margin && y < rowLen - margin && x >= margin && x < rowLen - margin) {
+          newMatrix[y * rowLen + x] = qr.matrix[(y - margin) * qrRowLen + x - margin];
         }
       }
       // between squares
-      else if (
-        y > start - outer &&
-        y < end + outer &&
-        x > start - outer &&
-        x < end + outer
-      ) {
+      else if (y > start - outer && y < end + outer && x > start - outer && x < end + outer) {
         if ((x + y) & 1) {
           newMatrix[y * rowLen + x] = Module.ON;
         }

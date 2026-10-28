@@ -97,11 +97,7 @@ function parseField(value: any) {
   ) {
     return null;
   } else if (value.type === "select") {
-    if (
-      !("options" in value) ||
-      !Array.isArray(value.options) ||
-      value.options.length === 0
-    ) {
+    if (!("options" in value) || !Array.isArray(value.options) || value.options.length === 0) {
       return null;
     }
   } else if (value.type === "array") {
@@ -120,12 +116,9 @@ function parseField(value: any) {
     if (value.type === "select") {
       value.default = value.options[0];
     } else if (value.type === "array") {
-      value.default = Array.from(
-        { length: value.defaultLength ?? 1 },
-        () => value.props.default
-      );
+      value.default = Array.from({ length: value.defaultLength ?? 1 }, () => value.props.default);
     } else {
-      value.default = PARAM_DEFAULTS[value.type];
+      value.default = PARAM_DEFAULTS[value.type as keyof typeof PARAM_DEFAULTS];
     }
   }
 

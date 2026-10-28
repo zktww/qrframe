@@ -1,4 +1,4 @@
-import { Module, getSeededRand } from "https://qrframe.kylezhe.ng/utils.js";
+import { Module, getSeededRand } from "qrframe";
 
 export const paramsSchema = {
   Margin: {
@@ -162,10 +162,7 @@ export async function renderSVG(qr, params) {
         if (params["Finder pattern"] !== "Default" && module & Module.FINDER) {
           continue;
         }
-        if (
-          params["Alignment pattern"] !== "Default" &&
-          module & Module.ALIGNMENT
-        ) {
+        if (params["Alignment pattern"] !== "Default" && module & Module.ALIGNMENT) {
           if (module & Module.MODIFIER) {
             if (params["Alignment pattern"] === "Circle") {
               svg += `M${x + 0.5},${y - 2}a2.5,2.5 0,0,0 0,5a2.5,2.5 0,0,0 0,-5`;
@@ -207,9 +204,7 @@ export async function renderSVG(qr, params) {
 
   if (file != null) {
     const bytes = new Uint8Array(await file.arrayBuffer());
-    const b64 = btoa(
-      Array.from(bytes, (byte) => String.fromCodePoint(byte)).join("")
-    );
+    const b64 = btoa(Array.from(bytes, (byte) => String.fromCodePoint(byte)).join(""));
     const logoSize = fmt(logoRatio * size);
     const logoOffset = fmt(((1 - logoRatio) * size) / 2 - margin);
     svg += `<image x="${logoOffset}" y="${logoOffset}" width="${logoSize}" height="${logoSize}" href="data:${file.type};base64,${b64}"/>`;

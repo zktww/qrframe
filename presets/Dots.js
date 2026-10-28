@@ -1,4 +1,4 @@
-import { Module, getSeededRand } from "https://qrframe.kylezhe.ng/utils.js";
+import { Module, getSeededRand } from "qrframe";
 
 export const paramsSchema = {
   Margin: {
@@ -95,9 +95,7 @@ export function renderSVG(qr, params) {
       if (qx >= 0 && qx < rowLen && qy >= 0 && qy < rowLen) {
         if (qr.matrix[qy * rowLen + qx] & Module.ON) {
           const rad =
-            qr.matrix[qy * rowLen + qx] & Module.FINDER
-              ? params["Finder clarity"]
-              : dotRadius;
+            qr.matrix[qy * rowLen + qx] & Module.FINDER ? params["Finder clarity"] : dotRadius;
           svg += `<circle cx="${(center + x).toFixed(2)}" cy="${(center + y).toFixed(2)}" r="${rad}" />`;
         }
       }
@@ -109,7 +107,7 @@ export function renderSVG(qr, params) {
   svg += `<g style="mix-blend-mode:${params["Mix blend mode"]}">`;
   colors.forEach(
     (color) =>
-      (svg += `<use href="#dots" fill="${color}" fill-opacity="0.75" transform="translate(${rangeStr(-1, 1)},${rangeStr(-1, 1)}) rotate(${rangeStr(-1, 1)})" transform-origin="${center} ${center}"/>`)
+      (svg += `<use href="#dots" fill="${color}" fill-opacity="0.75" transform="translate(${rangeStr(-1, 1)},${rangeStr(-1, 1)}) rotate(${rangeStr(-1, 1)})" transform-origin="${center} ${center}"/>`),
   );
   svg += `</g>`;
 

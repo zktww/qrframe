@@ -8,10 +8,10 @@ import {
   type Setter,
 } from "solid-js";
 import { createStore, unwrap, type SetStoreFunction } from "solid-js/store";
-import { type Params, type ParamsSchema } from "./params";
 import { clearToasts, toastError } from "~/components/ErrorToasts";
-import { QrState, useQrContext, type OutputQr } from "./QrContext";
+import { useQrContext, type OutputQr } from "./QrContext";
 import { useI18n } from "./i18n";
+import { type Params, type ParamsSchema } from "./params";
 
 export const RenderContext = createContext<{
   render: Accessor<Render | null>;
@@ -23,18 +23,14 @@ export const RenderContext = createContext<{
   paramsSchema: Accessor<ParamsSchema>;
   setParamsSchema: Setter<ParamsSchema>;
   error: Accessor<string | null>;
-  setError: Setter<string | null>;
+  setError: (e: string | null) => void;
   svgParentRefs: HTMLDivElement[];
   addSvgParentRef: (ref: HTMLDivElement) => void;
   canvasRefs: HTMLCanvasElement[];
   addCanvasRef: (ref: HTMLCanvasElement) => void;
 }>();
 
-export type RenderCanvas = (
-  qr: OutputQr,
-  params: Params,
-  ctx: CanvasRenderingContext2D,
-) => void;
+export type RenderCanvas = (qr: OutputQr, params: Params, ctx: CanvasRenderingContext2D) => void;
 
 export type RenderSVG = (qr: OutputQr, params: Params) => string;
 
@@ -54,10 +50,10 @@ export function RenderContextProvider(props: { children: JSX.Element }) {
   const [render, setRender] = createSignal<Render | null>(null);
 
   const [paramsSchema, setParamsSchema] = createSignal<ParamsSchema>({});
-  const [params, setParams] = createStore({});
+  const [params, setParams] = createStore<Params>({});
 
   const [error, _setError] = createSignal<string | null>(null);
-  const setError = (e) => {
+  const setError = (e: string | null) => {
     if (e == null) {
       clearToasts();
     } else {
@@ -67,16 +63,16 @@ export function RenderContextProvider(props: { children: JSX.Element }) {
   };
 
   const canvasRefs: HTMLCanvasElement[] = [];
-  const addCanvasRef = (ref) => {
+  const addCanvasRef = (ref: HTMLCanvasElement) => {
     canvasRefs.push(ref);
   };
   const svgParentRefs: HTMLDivElement[] = [];
-  const addSvgParentRef = (ref) => {
+  const addSvgParentRef = (ref: HTMLDivElement) => {
     svgParentRefs.push(ref);
   };
 
   let worker: Worker | null = null;
-  const timeoutIdSet = new Set<NodeJS.Timeout>();
+  const timeoutIdSet = new Set<number>();
 
   // This *almost* doesn't need to be an effect
   // BUT in QrEditor's `saveAndRun` there are 3 signals
@@ -84,7 +80,7 @@ export function RenderContextProvider(props: { children: JSX.Element }) {
   // I could expose multiple versions of the set functions
   // but that seems much less maintainable that this
   createEffect(async () => {
-    if (output().state !== QrState.Ready) return;
+    if (output().err) return;
     const r = render();
 
     // Track store without leaking extra params
@@ -107,10 +103,7 @@ export function RenderContextProvider(props: { children: JSX.Element }) {
     if (worker == null) setupWorker();
 
     const timeoutId = setTimeout(() => {
-      console.error(
-        `Preview took longer than 5 seconds, timed out!`,
-        timeoutId,
-      );
+      console.error(`Preview took longer than 5 seconds, timed out!`, timeoutId);
       timeoutIdSet.delete(timeoutId);
       if (worker != null) {
         worker.terminate();
@@ -134,8 +127,7 @@ export function RenderContextProvider(props: { children: JSX.Element }) {
   });
 
   const setupWorker = () => {
-    console.log("Starting previewWorker");
-    worker = new Worker("previewWorker.js", { type: "module" });
+    worker = new Worker(`${import.meta.env.BASE_URL}previewWorker.js`, { type: "module" });
 
     worker.onmessage = (e) => {
       clearTimeout(e.data.timeoutId);
@@ -153,9 +145,7 @@ export function RenderContextProvider(props: { children: JSX.Element }) {
           canvasRefs.forEach((canvas) => {
             if (first == null) {
               first = canvas;
-              canvas
-                .getContext("bitmaprenderer")!
-                .transferFromImageBitmap(e.data.bitmap);
+              canvas.getContext("bitmaprenderer")!.transferFromImageBitmap(e.data.bitmap);
             } else {
               canvas.getContext("2d")!.drawImage(first, 0, 0);
             }

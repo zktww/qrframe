@@ -1,4 +1,4 @@
-import { Module } from "https://qrframe.kylezhe.ng/utils.js";
+import { Module } from "qrframe";
 
 export const paramsSchema = {
   Margin: {
@@ -31,15 +31,7 @@ export const paramsSchema = {
   },
   Frame: {
     type: "select",
-    options: [
-      "None",
-      "Corners",
-      "Full",
-      "Rounded",
-      "Double",
-      "Brackets",
-      "Dashed",
-    ],
+    options: ["None", "Corners", "Full", "Rounded", "Double", "Brackets", "Dashed"],
   },
   Roundness: {
     type: "number",
@@ -89,15 +81,7 @@ export async function renderSVG(qr, params) {
 
   svg += `<g fill="${fg}">`;
 
-  svg += frame(
-    params["Frame"],
-    -margin / 2,
-    -margin / 2,
-    size - margin,
-    margin,
-    roundness,
-    fg,
-  );
+  svg += frame(params["Frame"], -margin / 2, -margin / 2, size - margin, margin, roundness, fg);
 
   svg += `<path d="`;
   const lgRadius = 3.5 * roundness;
@@ -146,14 +130,7 @@ export async function renderSVG(qr, params) {
       if (!(module & Module.ON)) continue;
       if (module & Module.FINDER) continue;
 
-      svg += dataModule(
-        x + dataOffset,
-        y + dataOffset,
-        dataSize,
-        dataRadius,
-        shape,
-        roundness,
-      );
+      svg += dataModule(x + dataOffset, y + dataOffset, dataSize, dataRadius, shape, roundness);
     }
   }
   svg += `"/>`;
@@ -161,9 +138,7 @@ export async function renderSVG(qr, params) {
 
   if (file != null) {
     const bytes = new Uint8Array(await file.arrayBuffer());
-    const b64 = btoa(
-      Array.from(bytes, (byte) => String.fromCodePoint(byte)).join(""),
-    );
+    const b64 = btoa(Array.from(bytes, (byte) => String.fromCodePoint(byte)).join(""));
     const logoSize = fmt(logoRatio * size);
     const logoOffset = fmt(((1 - logoRatio) * size) / 2 - margin);
     svg += `<image x="${logoOffset}" y="${logoOffset}" width="${logoSize}" height="${logoSize}" href="data:${file.type};base64,${b64}"/>`;

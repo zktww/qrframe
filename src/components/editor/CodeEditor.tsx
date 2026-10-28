@@ -1,16 +1,13 @@
 import { createEffect, createSignal, onMount, untrack } from "solid-js";
 
-import { basicSetup } from "codemirror";
 import { historyKeymap, indentWithTab } from "@codemirror/commands";
 import { javascript } from "@codemirror/lang-javascript";
 import { syntaxHighlighting } from "@codemirror/language";
 import { Compartment, EditorState } from "@codemirror/state";
+import { oneDarkHighlightStyle, oneDarkTheme } from "@codemirror/theme-one-dark";
 import { EditorView, keymap, type ViewUpdate } from "@codemirror/view";
-import {
-  oneDarkHighlightStyle,
-  oneDarkTheme,
-} from "@codemirror/theme-one-dark";
 import { vim } from "@replit/codemirror-vim";
+import { basicSetup } from "codemirror";
 
 import { Button } from "@kobalte/core/button";
 import { useI18n } from "~/lib/i18n";
@@ -30,7 +27,7 @@ export function CodeEditor(props: Props) {
   let parent!: HTMLDivElement;
   let view: EditorView;
   let modeComp = new Compartment();
-  let allowPaste;
+  let allowPaste: boolean;
 
   const [vimMode, _setVimMode] = createSignal(false);
   const setVimMode = (v: boolean) => {
@@ -176,9 +173,7 @@ export function CodeEditor(props: Props) {
         </label>
         <Button
           disabled={!dirty()}
-          onMouseDown={() =>
-            props.onSave(view.state.doc.toString(), updateThumbnail())
-          }
+          onMouseDown={() => props.onSave(view.state.doc.toString(), updateThumbnail())}
           class="bg-green-700 border rounded-md hover:bg-green-700/90 focus-visible:(outline-none ring-2 ring-fore-base ring-offset-2 ring-offset-back-base) disabled:(bg-transparent text-fore-base pointer-events-none opacity-50) transition-colors px-3 py-1 min-w-150px"
         >
           {dirty() ? t().codeEditor.save : t().codeEditor.noChanges}

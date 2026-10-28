@@ -15,8 +15,7 @@ export function FlatButton(props: Props) {
     <Button
       title={props.title}
       classList={{
-        "leading-tight border rounded-md hover:bg-fore-base/5 focus-visible:(outline-none ring-2 ring-fore-base ring-offset-2 ring-offset-back-base) disabled:(pointer-events-none opacity-50)":
-          true,
+        "leading-tight border rounded-md hover:bg-fore-base/5 focus-visible:(outline-none ring-2 ring-fore-base ring-offset-2 ring-offset-back-base) disabled:(pointer-events-none opacity-50)": true,
         [props.class ?? "px-3 py-2"]: true,
       }}
       onMouseDown={props.onMouseDown}
@@ -34,8 +33,7 @@ export function FillButton(props: Props) {
     <Button
       title={props.title}
       classList={{
-        "leading-tight bg-fore-base text-back-base border rounded-md hover:bg-fore-base/90 focus-visible:(outline-none ring-2 ring-fore-base ring-offset-2 ring-offset-back-base) disabled:(pointer-events-none opacity-50)":
-          true,
+        "leading-tight bg-fore-base text-back-base border rounded-md hover:bg-fore-base/90 focus-visible:(outline-none ring-2 ring-fore-base ring-offset-2 ring-offset-back-base) disabled:(pointer-events-none opacity-50)": true,
         [props.class ?? "px-3 py-2"]: true,
       }}
       onMouseDown={props.onMouseDown}

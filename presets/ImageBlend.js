@@ -1,4 +1,4 @@
-import { Module } from "https://qrframe.kylezhe.ng/utils.js";
+import { Module } from "qrframe";
 
 export const paramsSchema = {
   Image: {

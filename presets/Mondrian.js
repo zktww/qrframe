@@ -1,4 +1,4 @@
-import { Module, getSeededRand } from "https://qrframe.kylezhe.ng/utils.js";
+import { Module, getSeededRand } from "qrframe";
 
 export const paramsSchema = {
   Margin: {
@@ -52,9 +52,7 @@ export function renderSVG(qr, params) {
   svg += `<rect width="${size}" height="${size}" fill="${params["Lines"]}"/>`;
 
   let lightLayer = `<path fill="${params["Background"]}" d="`;
-  const darkLayers = params["Foreground"].map(
-    (color) => `<path fill="${color}" d="`
-  );
+  const darkLayers = params["Foreground"].map((color) => `<path fill="${color}" d="`);
 
   const visited = Array.from({ length: rowLen * rowLen }).fill(false);
   const matrix = Array.from({ length: rowLen * rowLen }).fill(0);
@@ -62,14 +60,8 @@ export function renderSVG(qr, params) {
 
   for (let y = 0; y < rowLen; y++) {
     for (let x = 0; x < rowLen; x++) {
-      if (
-        y >= margin &&
-        y < rowLen - margin &&
-        x >= margin &&
-        x < rowLen - margin
-      ) {
-        matrix[y * rowLen + x] =
-          qr.matrix[(y - margin) * qrWidth + (x - margin)];
+      if (y >= margin && y < rowLen - margin && x >= margin && x < rowLen - margin) {
+        matrix[y * rowLen + x] = qr.matrix[(y - margin) * qrWidth + (x - margin)];
       }
     }
   }

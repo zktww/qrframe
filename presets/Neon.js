@@ -1,4 +1,4 @@
-import { Module, getSeededRand } from "https://qrframe.kylezhe.ng/utils.js";
+import { Module, getSeededRand } from "qrframe";
 
 export const paramsSchema = {
   Foreground: {
@@ -77,8 +77,7 @@ export function renderSVG(qr, params) {
     }
     if (y >= margin && y < margin + qrRowLen) {
       for (let x = margin; x < rowLen - margin; x++) {
-        newMatrix[y * rowLen + x] =
-          qr.matrix[(y - margin) * qrRowLen + x - margin];
+        newMatrix[y * rowLen + x] = qr.matrix[(y - margin) * qrRowLen + x - margin];
       }
     }
     for (let x = margin + qrRowLen + 1; x < rowLen; x++) {
@@ -220,8 +219,7 @@ export function renderSVG(qr, params) {
 
       if (!on(x, y)) {
         const path = visited[y * rowLen + x - 1];
-        paths[path] +=
-          `M${x * unit - offset},${y * unit - offset}v${2 * offset}`;
+        paths[path] += `M${x * unit - offset},${y * unit - offset}v${2 * offset}`;
 
         baseY = y - 1;
         baseX = x;
@@ -242,7 +240,7 @@ export function renderSVG(qr, params) {
 
       const color = colors[Math.floor(rand() * colors.length)];
       paths.push(
-        `<path fill="${color}" filter="url(#glow)" d="M${x * unit + offset},${y * unit + offset}`
+        `<path fill="${color}" filter="url(#glow)" d="M${x * unit + offset},${y * unit + offset}`,
       );
       baseY = y;
       baseX = x;

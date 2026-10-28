@@ -41,9 +41,7 @@ export function AllowPasteDialog(props: Props) {
               >
                 {t().pasteDialog.yes}
               </FillButton>
-              <FlatButton onMouseDown={props.setClosed}>
-                {t().pasteDialog.no}
-              </FlatButton>
+              <FlatButton onMouseDown={props.setClosed}>{t().pasteDialog.no}</FlatButton>
             </div>
           </AlertDialog.Content>
         </div>

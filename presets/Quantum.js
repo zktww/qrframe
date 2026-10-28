@@ -1,6 +1,6 @@
 // Based on QRBTF's A1P style
 // https://github.com/CPunisher/react-qrbtf/blob/master/src/components/QRNormal.tsx
-import { Module, getSeededRand } from "https://qrframe.kylezhe.ng/utils.js";
+import { Module, getSeededRand } from "qrframe";
 
 export const paramsSchema = {
   Margin: {
@@ -36,8 +36,7 @@ export const paramsSchema = {
 
 export function renderSVG(qr, params) {
   const rand = getSeededRand(params["Seed"]);
-  const range = (min, max) =>
-    Math.trunc(100 * (rand() * (max - min) + min)) / 100;
+  const range = (min, max) => Math.trunc(100 * (rand() * (max - min) + min)) / 100;
 
   const rowLen = qr.version * 4 + 17;
   const margin = params["Margin"];
