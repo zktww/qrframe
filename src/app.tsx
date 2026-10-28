@@ -41,13 +41,6 @@ function Footer() {
       >
         {t().footer.source}
       </a>
-      <a
-        class="font-semibold hover:text-fore-base/80 focus-visible:(outline-none ring-2 ring-fore-base ring-offset-2 ring-offset-back-base)"
-        href="https://kylezhe.ng/writes/crafting-qr-codes"
-        target="_blank"
-      >
-        {t().footer.blog}
-      </a>
       <div class="flex items-center gap-2">
         <span class="text-fore-subtle">{t().footer.language}</span>
         <ButtonGroup value={language()} setValue={(lang) => setLanguage(lang as Language)}>
