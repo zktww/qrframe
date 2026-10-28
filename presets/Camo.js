@@ -1,4 +1,4 @@
-import { Module, getSeededRand } from "https://qrframe.kylezhe.ng/utils.js";
+import { Module, getSeededRand } from "qrframe";
 
 export const paramsSchema = {
   Foreground: {
@@ -57,8 +57,7 @@ export function renderSVG(qr, params) {
     }
     if (y >= margin && y < margin + qrRowLen) {
       for (let x = margin; x < rowLen - margin; x++) {
-        newMatrix[y * rowLen + x] =
-          qr.matrix[(y - margin) * qrRowLen + x - margin];
+        newMatrix[y * rowLen + x] = qr.matrix[(y - margin) * qrRowLen + x - margin];
       }
     }
     for (let x = margin + qrRowLen + quietZone; x < rowLen; x++) {

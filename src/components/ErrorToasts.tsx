@@ -18,9 +18,7 @@ export const toastError = (title: JSX.Element, description: JSX.Element) => {
           <X />
         </Toast.CloseButton>
       </div>
-      <Toast.Description>
-        {description}
-      </Toast.Description>
+      <Toast.Description>{description}</Toast.Description>
     </Toast>
   ));
 };
@@ -38,11 +36,7 @@ export const toastSuccess = (title: JSX.Element, description?: JSX.Element) => {
           <X />
         </Toast.CloseButton>
       </div>
-      {description && (
-        <Toast.Description>
-          {description}
-        </Toast.Description>
-      )}
+      {description && <Toast.Description>{description}</Toast.Description>}
     </Toast>
   ));
 };

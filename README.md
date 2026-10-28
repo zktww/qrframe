@@ -4,7 +4,7 @@ code-based qr code generator
 
 Blatantly inspired by [QRBTF](https://qrbtf.com) and [Anthony Fu's QR Toolkit](https://qrcode.antfu.me).
 
-[Here's a post I wrote about crafting QR codes](https://kylezhe.ng/posts/crafting_qr_codes) that goes into deeper detail about how they work and ways to make them pretty.
+[Here's a post I wrote about crafting QR codes](https://kylezhe.ng/writes/crafting-qr-codes) that goes into deeper detail about how they work and ways to make them pretty.
 
 ## Examples
 
@@ -109,28 +109,25 @@ This project is a tool to create designs! These are only examples!
 
 ![code and parameter editor ui](./examples/ui2.png)
 
-## Features
+### Customize data
 
-- Customize data:
+- encoder, version, error tolerance, mask pattern
+- powered by [`furious-qr`](https://github.com/zhengkyl/furious-qr), my small and hackable qr code generator
 
-  - encoding mode, version, error tolerance, mask pattern
-  - powered by [`fuqr`](https://github.com/zhengkyl/fuqr), my own Rust library imported as WASM. (i use windows, btw)
+### Customize appearance
 
-- Customize appearance:
-  - Choose any preset, customize or even create a new one from scratch via code editor.
-  - Define arbitrary UI parameters in code
-  - Supports SVG and PNG
-  - All code runs _directly_ in browser in a web worker with no restrictions.
-    - There is no sandbox, whitelist, blacklist, or anything besides a 5s timeout to stop infinite loops.
-    - Generated SVGs are not sanitized. This is an impossible task and attempting it breaks perfectly fine SVGs, makes debugging harder, and adds latency to previewing changes.
-    - These should be non-issues, but even if you copy-and-paste and run malware there's no secrets to leak.
-
+- Choose any preset, customize or even create a new one from scratch via code editor.
+- Define arbitrary UI parameters in code
+- All preset code runs in browser in a web worker with no restrictions.
+  - There is a 5s timeout to stop infinite loops.
+  - Generated SVGs are not sanitized.
+  - There is nothing to exploit/attack and no risk from bad code except crashing your tab.
 
 ## Creating a preset
 
 A preset must export `paramsSchema` and either `renderSVG` or `renderCanvas`
 
-## `paramsSchema`
+### `paramsSchema`
 
 This schema defines the UI components whose values are passed into `renderSVG` or `renderCanvas` via the `params` object.
 
@@ -181,7 +178,7 @@ export const paramsSchema = {
 };
 ```
 
-## `renderSVG` and `renderCanvas`
+### `renderSVG` and `renderCanvas`
 
 ```ts
 type renderSVG = (qr: Qr, params: Params) => string;
@@ -199,7 +196,6 @@ type Qr = {
   version: number; // 1- 40
   mask: number; // 0 - 7,
   ecl: number; // 0 - 3, Low, Medium, Quartile, High
-  mode: number; // 0 - 2, Numeric, Alphanumeric, Byte
 };
 
 // bit flags for each u8 in matrix
@@ -216,3 +212,22 @@ const Module = {
 ```
 
 `MODIFIER` is set for Finder and Alignment centers, Format and Version copy.
+
+## Self-hosting
+
+Use Node.js 20.19+ (20.x) or 22.12+ and pnpm.
+
+```sh
+pnpm install --frozen-lockfile
+pnpm test
+pnpm run build
+```
+
+The static files are available in `.output/public`. Cloudflare Pages uses this directory
+via `wrangler.toml` (the old build used `dist`). Existing `pnpm preview` and
+`pnpm deploy` commands are retained. Configure the hosting build environment to
+use a supported Node.js version.
+
+Serving under a nonroot path is broken until https://github.com/solidjs/solid-start/pull/2152 is merged and released.
+
+Once fixed update `@solidjs/vite-plugin-nitro-2` and modify `base` in `vite.config.ts`.

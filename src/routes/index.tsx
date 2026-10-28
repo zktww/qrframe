@@ -6,17 +6,7 @@ import { QrPreview } from "~/components/preview/QrPreview";
 import { QrContextProvider } from "~/lib/QrContext";
 import { RenderContextProvider } from "~/lib/RenderContext";
 
-export default function Home() {
-  return (
-    <QrContextProvider>
-      <RenderContextProvider>
-        <Temp />
-      </RenderContextProvider>
-    </QrContextProvider>
-  );
-}
-
-function Temp() {
+export default function Temp() {
   onMount(() => {
     const viewport = window.visualViewport!;
     let prevHeight = viewport.height;
@@ -64,26 +54,29 @@ function Temp() {
   };
 
   return (
-    <main class="max-w-screen-2xl mx-auto">
-      <div class="flex flex-col-reverse md:flex-row">
-        <Editor
-          class="flex-1 flex-grow-3 flex flex-col gap-2 px-4 py-4 md:py-8"
-          onTextFocus={onFocus}
-          onTextBlur={onBlur}
-          textRef={(ref) => (textRef = ref)}
-        />
-        <QrPreview
-          ref={qrPreview!}
-          classList={{
-            "top-0 flex flex-col gap-4 p-4 rounded-b-[1rem] border-b shadow-2xl bg-back-base z-10 [transition:top] md:(sticky flex-1 flex-grow-2 min-w-300px self-start py-8 border-none shadow-none)":
-              true,
-            sticky: !textFocused(),
-          }}
-        />
-      </div>
-      <Portal>
-        <ErrorToasts />
-      </Portal>
-    </main>
+    <QrContextProvider>
+      <RenderContextProvider>
+        <main class="max-w-screen-2xl mx-auto">
+          <div class="flex flex-col-reverse md:flex-row">
+            <Editor
+              class="flex-1 flex-grow-3 flex flex-col gap-2 px-4 py-4 md:py-8"
+              onTextFocus={onFocus}
+              onTextBlur={onBlur}
+              textRef={(ref) => (textRef = ref)}
+            />
+            <QrPreview
+              ref={qrPreview!}
+              classList={{
+                "top-0 flex flex-col gap-4 p-4 rounded-b-[1rem] border-b shadow-2xl bg-back-base z-10 [transition:top] md:(sticky flex-1 flex-grow-2 min-w-300px self-start py-8 border-none shadow-none)": true,
+                sticky: !textFocused(),
+              }}
+            />
+          </div>
+          <Portal>
+            <ErrorToasts />
+          </Portal>
+        </main>
+      </RenderContextProvider>
+    </QrContextProvider>
   );
 }

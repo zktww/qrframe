@@ -1,7 +1,19 @@
-import { defineConfig } from "unocss";
 import transformerVariantGroup from "@unocss/transformer-variant-group";
+import { defineConfig } from "unocss";
+
 export default defineConfig({
-  blocklist: ["m55", "resize"],
+  blocklist: [
+    "resize",
+    // disable overzealous shorthands
+    // any two letters (mx, my, pt, ...).
+    /^[a-z]{2}$/,
+    // any letter followed by number (m4, w100, z10)
+    /^[a-z]\d/,
+  ],
+  content: {
+    // entry-server.tsx not in client module graph
+    filesystem: ["src/entry-server.tsx"],
+  },
   transformers: [transformerVariantGroup()],
   theme: {
     colors: {
@@ -13,7 +25,7 @@ export default defineConfig({
       back: {
         base: "#0e0f0f",
         subtle: "#1a1b1c",
-        distinct: "#3d3e3e"
+        distinct: "#3d3e3e",
       },
     },
     animation: {
@@ -46,8 +58,7 @@ export default defineConfig({
   },
   preflights: [
     {
-      getCSS: ({ theme }) =>
-        `*{--un-default-border-color:${theme.colors.fore.border};}`,
+      getCSS: ({ theme }) => `*{--un-default-border-color:${theme.colors.fore.border};}`,
     },
   ],
 });

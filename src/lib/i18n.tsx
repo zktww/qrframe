@@ -39,6 +39,8 @@ const messages = {
     },
     settings: {
       encodingMode: "编码模式",
+      encoder: "编码器",
+      exact: "精确",
       version: "版本",
       minVersion: "最小版本",
       strict: "严格",
@@ -47,6 +49,12 @@ const messages = {
       maskPattern: "掩码模式",
     },
     options: {
+      encoder: {
+        Byte: "字节",
+        Alphanumeric: "字母数字",
+        Numeric: "数字",
+        "Multi-segment": "多段混合",
+      },
       ecl: {
         Low: "低",
         Medium: "中",
@@ -93,8 +101,7 @@ const messages = {
       warning: "运行不理解的代码可能有风险。",
       details:
         "这个网站没有可泄露的密钥或密码，但仍然可能发生各种事情：页面可能崩溃、跳转到其他网址，或者出现完全意料之外的结果。",
-      deleteHint:
-        "如果你需要在不运行代码的情况下删除某个预设，可以右键点击它。",
+      deleteHint: "如果你需要在不运行代码的情况下删除某个预设，可以右键点击它。",
       acceptQuestion: "你接受这些风险吗？",
       yes: "接受",
       no: "不接受",
@@ -104,7 +111,8 @@ const messages = {
       delete: "删除",
     },
     preview: {
-      dataExceedsCapacity: "数据超过最大容量",
+      dataExceedsCapacity: "数据超过所选版本的容量",
+      scanReminder: "请实际扫描生成的二维码，最好在真实使用环境中验证！",
       invalidEncoding: (mode: string) => `输入无法用${mode}模式编码`,
       metadataTitle: "QR 元数据",
       version: "版本",
@@ -338,6 +346,8 @@ const messages = {
     },
     settings: {
       encodingMode: "Encoding mode",
+      encoder: "Encoder",
+      exact: "Exact",
       version: "Version",
       minVersion: "Min version",
       strict: "Strict",
@@ -346,6 +356,12 @@ const messages = {
       maskPattern: "Mask pattern",
     },
     options: {
+      encoder: {
+        Byte: "Byte",
+        Alphanumeric: "Alphanumeric",
+        Numeric: "Numeric",
+        "Multi-segment": "Multi-segment",
+      },
       ecl: {
         Low: "Low",
         Medium: "Medium",
@@ -403,9 +419,9 @@ const messages = {
       delete: "Delete",
     },
     preview: {
-      dataExceedsCapacity: "Data exceeds max capacity",
-      invalidEncoding: (mode: string) =>
-        `Input cannot be encoded in ${mode} mode`,
+      dataExceedsCapacity: "Data exceeds the capacity of the selected version",
+      scanReminder: "Always try scanning your code, ideally in real conditions!",
+      invalidEncoding: (mode: string) => `Input cannot be encoded in ${mode} mode`,
       metadataTitle: "QR Metadata",
       version: "Version",
       matrix: (size: number) => `${size}x${size} matrix`,

@@ -1,4 +1,4 @@
-import { Module, getSeededRand } from "https://qrframe.kylezhe.ng/utils.js";
+import { Module, getSeededRand } from "qrframe";
 
 export const paramsSchema = {
   Margin: {

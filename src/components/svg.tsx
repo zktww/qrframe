@@ -1,7 +1,7 @@
-type SvgProps ={
-  size?: number
-  class?: string
-}
+type SvgProps = {
+  size?: number;
+  class?: string;
+};
 export function FilledDot(props: SvgProps) {
   return (
     <svg

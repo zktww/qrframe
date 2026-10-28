@@ -7,6 +7,7 @@ import {
   SortableProvider,
   transformStyle,
   useDragDropContext,
+  type DragEvent,
 } from "@thisbeyond/solid-dnd";
 import GripVertical from "lucide-solid/icons/grip-vertical";
 import Minus from "lucide-solid/icons/minus";
@@ -38,9 +39,7 @@ export function ParamsEditor() {
           return (
             <>
               <div class="flex justify-between">
-                <div class="text-sm py-2 w-36 shrink-0">
-                  {paramLabel(t(), label)}
-                </div>
+                <div class="text-sm py-2 w-36 shrink-0">{paramLabel(t(), label)}</div>
                 <Dynamic
                   component={PARAM_COMPONENTS[type]}
                   {...inputProps}
@@ -56,7 +55,7 @@ export function ParamsEditor() {
   );
 }
 
-function ArrayParam({ label, other }) {
+function ArrayParam({ label, other }: { label: string; other: any }) {
   const { params, setParams } = useRenderContext();
   const { t } = useI18n();
   const innerProps = () =>
@@ -68,18 +67,18 @@ function ArrayParam({ label, other }) {
       : other.props;
 
   // 0 is falsey and not a valid key
-  const idFromIndex = (i) => i + 1;
-  const indexFromId = (k) => k - 1;
-  const [activeId, setActiveId] = createSignal(null);
+  const idFromIndex = (i: number) => i + 1;
+  const indexFromId = (k: number) => k - 1;
+  const [activeId, setActiveId] = createSignal<number | null>(null);
   const [dragging, setDragging] = createSignal(false);
 
-  const onDragStart = ({ draggable }) => {
-    setActiveId(draggable.id);
+  const onDragStart = ({ draggable }: DragEvent) => {
+    setActiveId(draggable.id as number);
     setDragging(true);
   };
-  const onDragEnd = ({ draggable, droppable }) => {
-    const fromIndex = indexFromId(draggable.id);
-    const toIndex = indexFromId(droppable.id);
+  const onDragEnd = ({ draggable, droppable }: DragEvent) => {
+    const fromIndex = indexFromId(draggable.id as number);
+    const toIndex = indexFromId(droppable!.id as number);
     if (fromIndex !== toIndex) {
       setParams(label, (prev: any[]) => {
         const updatedItems = prev.slice();
@@ -102,9 +101,7 @@ function ArrayParam({ label, other }) {
           </FlatButton>
           <FlatButton
             class="p-1.5"
-            onClick={() =>
-              setParams(label, (prev: any[]) => [...prev, other.props.default])
-            }
+            onClick={() => setParams(label, (prev: any[]) => [...prev, other.props.default])}
           >
             <Plus />
           </FlatButton>
@@ -112,15 +109,12 @@ function ArrayParam({ label, other }) {
       </div>
       <DragDropProvider
         onDragStart={onDragStart}
-        // @ts-expect-error droppable always exists
         onDragEnd={onDragEnd}
         collisionDetector={closestCenter}
       >
         <DragDropSensors />
         <SortableProvider
-          ids={Array.from({ length: params[label].length }, (_, i) =>
-            idFromIndex(i),
-          )}
+          ids={Array.from({ length: params[label].length }, (_, i) => idFromIndex(i))}
         >
           <Index each={params[label]}>
             {(v, i) => {
@@ -140,18 +134,13 @@ function ArrayParam({ label, other }) {
                   >
                     <Dynamic
                       component={
-                        PARAM_COMPONENTS[
-                          other.props.type as keyof typeof PARAM_COMPONENTS
-                        ]
+                        PARAM_COMPONENTS[other.props.type as keyof typeof PARAM_COMPONENTS]
                       }
                       {...innerProps()}
                       value={v()}
                       setValue={(v: any) => setParams(label, i, v)}
                     />
-                    <div
-                      class="px-1 cursor-move touch-none"
-                      {...sortable.dragActivators}
-                    >
+                    <div class="px-1 cursor-move touch-none" {...sortable.dragActivators}>
                       <GripVertical />
                     </div>
                   </div>
@@ -164,11 +153,7 @@ function ArrayParam({ label, other }) {
           <div class="flex w-full justify-end items-center">
             <Show when={dragging()}>
               <Dynamic
-                component={
-                  PARAM_COMPONENTS[
-                    other.props.type as keyof typeof PARAM_COMPONENTS
-                  ]
-                }
+                component={PARAM_COMPONENTS[other.props.type as keyof typeof PARAM_COMPONENTS]}
                 {...innerProps()}
                 value={params[label][indexFromId(activeId()!)]}
                 test={true}

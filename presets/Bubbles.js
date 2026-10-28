@@ -1,6 +1,6 @@
 // Based on QRBTF's Bubble style
 // https://github.com/CPunisher/react-qrbtf/blob/master/src/components/QRBubble.tsx
-import { Module, getSeededRand } from "https://qrframe.kylezhe.ng/utils.js";
+import { Module, getSeededRand } from "qrframe";
 
 export const paramsSchema = {
   Margin: {
@@ -96,11 +96,7 @@ export function renderSVG(qr, params) {
       if (
         y < rowLen - 2 &&
         x < rowLen - 2 &&
-        matrix(x + 1, y) &
-          matrix(x, y + 1) &
-          matrix(x + 2, y + 1) &
-          matrix(x + 1, y + 2) &
-          1 &&
+        matrix(x + 1, y) & matrix(x, y + 1) & matrix(x + 2, y + 1) & matrix(x + 1, y + 2) & 1 &&
         !visited(x + 1, y) &&
         !visited(x + 2, y) &&
         !visited(x + 1, y + 1) &&
@@ -120,10 +116,7 @@ export function renderSVG(qr, params) {
       if (
         y < rowLen - 1 &&
         x < rowLen - 1 &&
-        matrix(x + 1, y) &
-          matrix(x, y + 1) &
-          matrix(x + 1, y + 1) &
-          Module.ON &&
+        matrix(x + 1, y) & matrix(x, y + 1) & matrix(x + 1, y + 1) & Module.ON &&
         !visited(x + 1, y) &&
         !visited(x + 1, y + 1)
       ) {
@@ -133,20 +126,12 @@ export function renderSVG(qr, params) {
         setVisited(x + 1, y + 1);
         continue;
       }
-      if (
-        x < rowLen - 1 &&
-        matrix(x + 1, y) & Module.ON &&
-        !visited(x + 1, y)
-      ) {
+      if (x < rowLen - 1 && matrix(x + 1, y) & Module.ON && !visited(x + 1, y)) {
         layer3 += `<circle cx="${x + 1}" cy="${y + 0.5}" r="${rangeStr(0.4, 0.6)}"/>`;
         setVisited(x + 1, y);
         continue;
       }
-      if (
-        y < rowLen - 1 &&
-        matrix(x, y + 1) & Module.ON &&
-        !visited(x, y + 1)
-      ) {
+      if (y < rowLen - 1 && matrix(x, y + 1) & Module.ON && !visited(x, y + 1)) {
         layer3 += `<circle cx="${x + 0.5}" cy="${y + 1}" r="${rangeStr(0.3, 0.5)}"/>`;
         setVisited(x, y + 1);
         continue;

@@ -3,24 +3,11 @@ import Copy from "lucide-solid/icons/copy";
 import Download from "lucide-solid/icons/download";
 import Share2 from "lucide-solid/icons/share-2";
 import X from "lucide-solid/icons/x";
-import {
-  createSignal,
-  Match,
-  onCleanup,
-  Show,
-  Switch,
-  type JSX,
-} from "solid-js";
+import { createSignal, Match, onCleanup, Show, Switch, type JSX } from "solid-js";
 import { useI18n } from "~/lib/i18n";
-import { QrState, useQrContext } from "~/lib/QrContext";
+import { useQrContext } from "~/lib/QrContext";
 import { useRenderContext } from "~/lib/RenderContext";
-import {
-  ECL_LABELS,
-  ECL_NAMES,
-  MASK_KEY,
-  MODE_KEY,
-  MODE_NAMES,
-} from "~/lib/options";
+import { ECL_LABELS, ECL_NAMES } from "~/lib/options";
 import { FlatButton } from "../Button";
 import { toastError, toastSuccess } from "../ErrorToasts";
 import { SplitButton } from "../SplitButton";
@@ -38,34 +25,15 @@ export function QrPreview(props: Props) {
     <div classList={props.classList} ref={props.ref}>
       <div class="max-w-[300px] md:max-w-full w-full self-center">
         <Show
-          when={output().state === QrState.Ready}
+          when={!output().err}
           fallback={
             <div class="checkerboard aspect-[1/1] border rounded-md p-2 text-black">
-              <Switch>
-                <Match when={output().state === QrState.Loading}>
-                  <svg
-                    viewBox="-12 -12 48 48"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path d="M10.14,1.16a11,11,0,0,0-9,8.92A1.59,1.59,0,0,0,2.46,12,1.52,1.52,0,0,0,4.11,10.7a8,8,0,0,1,6.66-6.61A1.42,1.42,0,0,0,12,2.69h0A1.57,1.57,0,0,0,10.14,1.16Z">
-                      <animateTransform
-                        attributeName="transform"
-                        type="rotate"
-                        dur="0.75s"
-                        values="0 12 12;360 12 12"
-                        repeatCount="indefinite"
-                      />
-                    </path>
-                  </svg>
-                </Match>
-                <Match when={output().state === QrState.ExceedsMaxCapacity}>
+              <Switch fallback={output().err?.message}>
+                <Match when={output().err?.code === "CONTENT_TOO_LONG"}>
                   {t().preview.dataExceedsCapacity}
                 </Match>
-                <Match when={output().state === QrState.InvalidEncoding}>
-                  {t().preview.invalidEncoding(
-                    // @ts-expect-error props.mode not null b/c InvalidEncoding requires mode
-                    t().options.mode[MODE_NAMES[inputQr.mode + 1]],
-                  )}
+                <Match when={output().err?.code === "ENCODING_FAILURE"}>
+                  {t().preview.invalidEncoding(t().options.encoder[inputQr.encoder])}
                 </Match>
               </Switch>
             </div>
@@ -81,14 +49,8 @@ export function QrPreview(props: Props) {
 }
 
 function RenderedQrCode() {
-  const {
-    render,
-    error,
-    svgParentRefs,
-    addSvgParentRef,
-    canvasRefs,
-    addCanvasRef,
-  } = useRenderContext();
+  const { render, error, svgParentRefs, addSvgParentRef, canvasRefs, addCanvasRef } =
+    useRenderContext();
 
   let i = svgParentRefs.length;
   let j = canvasRefs.length;
@@ -126,40 +88,32 @@ type MetadataProps = {
 };
 
 function Metadata(props: MetadataProps) {
-  const { output } = useQrContext();
+  const { inputQr, output } = useQrContext();
   const { t } = useI18n();
   return (
     <div class={props.class}>
-      <div class="font-bold text-sm pb-2">{t().preview.metadataTitle}</div>
-      <Show when={output().state === QrState.Ready}>
+      <div class="text-sm pb-2 text-center">{t().preview.scanReminder}</div>
+      <Show when={!output().err}>
+        <div class="font-bold text-sm pb-2">{t().preview.metadataTitle}</div>
         <div class="grid grid-cols-2 gap-2 text-sm">
           <div class="">
             {t().preview.version}
             <div class="font-bold text-base">
-              {output().qr!.version} (
-              {t().preview.matrix(output().qr!.version * 4 + 17)})
+              {output().qr!.version} ({t().preview.matrix(output().qr!.version * 4 + 17)})
             </div>
           </div>
           <div class="">
             {t().preview.errorTolerance}{" "}
             <div class="font-bold text-base whitespace-pre">
-              {t().options.ecl[ECL_NAMES[output().qr!.ecl]]} (
-              {ECL_LABELS[output().qr!.ecl]})
+              {t().options.ecl[ECL_NAMES[output().qr!.ecl]]} ({ECL_LABELS[output().qr!.ecl]})
             </div>
           </div>
           <div class="">
-            {t().preview.mask}{" "}
-            <span class="font-bold text-base">
-              {MASK_KEY[output().qr!.mask] === "Auto"
-                ? t().options.mask.Auto
-                : MASK_KEY[output().qr!.mask]}
-            </span>
+            {t().preview.mask} <span class="font-bold text-base">{output().qr!.mask}</span>
           </div>
           <div class="">
-            {t().preview.encoding}{" "}
-            <span class="font-bold text-base">
-              {t().options.mode[MODE_KEY[output().qr!.mode]]}
-            </span>
+            {t().settings.encoder}{" "}
+            <span class="font-bold text-base">{t().options.encoder[inputQr.encoder]}</span>
           </div>
         </div>
       </Show>
@@ -171,14 +125,12 @@ function DownloadButtons() {
   const { output } = useQrContext();
   const { render, svgParentRefs, canvasRefs } = useRenderContext();
   const { t } = useI18n();
-  const [copyState, setCopyState] = createSignal<"idle" | "success" | "error">(
-    "idle",
-  );
-  const filename = () => output().qr!.text.slice(0, 32);
-  const disabled = () => output().state !== QrState.Ready;
+  const [copyState, setCopyState] = createSignal<"idle" | "success" | "error">("idle");
+  const filename = () => output().text.slice(0, 32);
+  const disabled = () => !!output().err;
   let copyResetTimeout: number | undefined;
 
-  const pngBlob = async (resizeWidth, resizeHeight) => {
+  const pngBlob = async (resizeWidth: number, resizeHeight: number) => {
     // roughly 20px per module, ranges from 500 to 3620px
     const minWidth = (output().qr!.version * 4 + 17 + 4) * 20;
 
@@ -223,9 +175,7 @@ function DownloadButtons() {
       URL.revokeObjectURL(url);
     }
 
-    return new Promise((resolve) =>
-      outCanvas.toBlob(resolve),
-    ) as Promise<Blob | null>;
+    return new Promise((resolve) => outCanvas.toBlob(resolve)) as Promise<Blob | null>;
   };
 
   const downloadSvg = async () => {
@@ -270,7 +220,7 @@ function DownloadButtons() {
   return (
     <div class="flex gap-2 md:(grid grid-cols-[1fr_1fr_auto])">
       <SplitButton
-        disabled={disabled()}
+        disabled={!!output().err}
         onPng={async (resizeWidth, resizeHeight) => {
           try {
             const blob = await pngBlob(resizeWidth, resizeHeight);
@@ -289,7 +239,7 @@ function DownloadButtons() {
       <Show when={render()?.type === "svg"}>
         <FlatButton
           class="hidden md:inline-flex flex-1 justify-center items-center gap-1 px-3 py-2"
-          disabled={disabled()}
+          disabled={!!output().err}
           onClick={downloadSvg}
         >
           <Download size={20} />
@@ -341,10 +291,7 @@ function DownloadButtons() {
             navigator.share(shareData);
           } catch (e) {
             console.log(e);
-            toastError(
-              t().preview.nativeSharingFailed,
-              t().preview.fileSharingUnsupported,
-            );
+            toastError(t().preview.nativeSharingFailed, t().preview.fileSharingUnsupported);
           }
         }}
       >

@@ -1,4 +1,4 @@
-import { Module } from "https://qrframe.kylezhe.ng/utils.js";
+import { Module } from "qrframe";
 
 export const paramsSchema = {
   Image: {
@@ -64,7 +64,7 @@ export async function renderCanvas(qr, params, canvas) {
   let file = params["Image"];
   if (file == null) {
     file = await fetch(
-      "https://upload.wikimedia.org/wikipedia/commons/1/14/The_Widow_%28Boston_Public_Library%29_%28cropped%29.jpg"
+      "https://upload.wikimedia.org/wikipedia/commons/1/14/The_Widow_%28Boston_Public_Library%29_%28cropped%29.jpg",
     ).then((res) => res.blob());
   }
   const image = await createImageBitmap(file);
@@ -107,8 +107,7 @@ export async function renderCanvas(qr, params, canvas) {
 
       if (data[i + 3] === 0) continue;
       // Convert to grayscale and normalize to 0-255
-      const oldPixel =
-        (data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114) | 0;
+      const oldPixel = (data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114) | 0;
 
       let newPixel;
       if (oldPixel < 128) {
@@ -160,12 +159,7 @@ export async function renderCanvas(qr, params, canvas) {
       ) {
         ctx.fillRect(px * unit, py * unit, unit, unit);
       } else {
-        ctx.fillRect(
-          px * unit + dataOffset,
-          py * unit + dataOffset,
-          pixel,
-          pixel
-        );
+        ctx.fillRect(px * unit + dataOffset, py * unit + dataOffset, pixel, pixel);
       }
     }
   }

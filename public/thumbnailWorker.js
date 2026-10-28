@@ -9,23 +9,23 @@ const PREVIEW_OUTPUTQR = {
   mask: 4, // Mask.M4
 };
 
-onmessage = async ({ data: { type,url,params,timeoutId } }) => {
+onmessage = async ({ data: { type, url, params, timeoutId } }) => {
   try {
     switch (type) {
       case "svg": {
         const { renderSVG } = await import(url);
-        const svg = await renderSVG(PREVIEW_OUTPUTQR,params);
+        const svg = await renderSVG(PREVIEW_OUTPUTQR, params);
 
-        postMessage({ type,svg,timeoutId });
+        postMessage({ type, svg, timeoutId });
         break;
       }
       case "canvas": {
         const { renderCanvas } = await import(url);
-        const canvas = new OffscreenCanvas(0,0);
-        await renderCanvas(PREVIEW_OUTPUTQR,params,canvas);
+        const canvas = new OffscreenCanvas(0, 0);
+        await renderCanvas(PREVIEW_OUTPUTQR, params, canvas);
 
         const bitmap = canvas.transferToImageBitmap();
-        postMessage({ type,bitmap,timeoutId },[bitmap]);
+        postMessage({ type, bitmap, timeoutId }, [bitmap]);
         break;
       }
     }

@@ -8,7 +8,7 @@ import { useI18n } from "~/lib/i18n";
 import { FillButton } from "./Button";
 
 type Props = {
-  onPng: (resizeWidth, resizeHeight) => void;
+  onPng: (resizeWidth: number, resizeHeight: number) => void;
   onSvg: () => void;
   disabled: boolean;
 };
@@ -17,7 +17,7 @@ export function SplitButton(props: Props) {
   const [customWidth, setCustomWidth] = createSignal(2000);
   const [customHeight, setCustomHeight] = createSignal(2000);
 
-  const onPng = (resizeWidth, resizeHeight) => {
+  const onPng = (resizeWidth: number, resizeHeight: number) => {
     props.onPng(resizeWidth, resizeHeight);
     setOpen(false);
   };
@@ -52,23 +52,16 @@ export function SplitButton(props: Props) {
           <Popover.Content class="z-50 bg-back-base rounded-md border p-2 outline-none min-w-150px leading-tight">
             <div class="flex flex-col gap-2">
               <div class="hidden md:contents">
-                <div class="text-sm font-bold">
-                  {t().splitButton.selectSize}
-                </div>
+                <div class="text-sm font-bold">{t().splitButton.selectSize}</div>
                 <FillButton class="w-full p-2" onClick={() => onPng(500, 500)}>
                   500x500
                 </FillButton>
-                <FillButton
-                  class="w-full p-2"
-                  onClick={() => onPng(1000, 1000)}
-                >
+                <FillButton class="w-full p-2" onClick={() => onPng(1000, 1000)}>
                   1000x1000
                 </FillButton>
               </div>
               <div class="contents md:hidden">
-                <div class="text-sm font-bold">
-                  {t().splitButton.alternateFileType}
-                </div>
+                <div class="text-sm font-bold">{t().splitButton.alternateFileType}</div>
                 <FillButton class="w-full p-2" onClick={onSvg}>
                   SVG
                 </FillButton>
@@ -89,10 +82,7 @@ export function SplitButton(props: Props) {
                   setValue={setCustomHeight}
                 />
               </div>
-              <FillButton
-                class="w-full p-2"
-                onClick={() => onPng(customWidth(), customHeight())}
-              >
+              <FillButton class="w-full p-2" onClick={() => onPng(customWidth(), customHeight())}>
                 {t().splitButton.downloadCustom}
               </FillButton>
             </div>
@@ -113,14 +103,9 @@ type NumberProps = {
 function MenuNumberInput(props: NumberProps) {
   const [rawValue, setRawValue] = createSignal(props.value);
 
-  const safeSetValue = (value) => {
+  const safeSetValue = (value: number) => {
     setRawValue(value);
-    if (
-      value < props.min ||
-      value > props.max ||
-      isNaN(value) ||
-      !Number.isInteger(value)
-    ) {
+    if (value < props.min || value > props.max || isNaN(value) || !Number.isInteger(value)) {
       return;
     }
 

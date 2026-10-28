@@ -5,6 +5,7 @@ dist
 .vercel
 .netlify
 .vinxi
+.nitro
 
 # Environment
 .env
@@ -19,9 +20,6 @@ dist
 .classpath
 *.launch
 .settings/
-
-# Temp
-gitignore
 
 # System Files
 .DS_Store

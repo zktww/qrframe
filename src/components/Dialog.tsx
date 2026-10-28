@@ -21,9 +21,7 @@ export function ControlledDialog(props: Props) {
             onOpenAutoFocus={props.onOpenAutoFocus}
           >
             <div class="flex justify-between items-center -mt-2 -mr-2">
-              <Dialog.Title class="text-lg font-semibold">
-                {props.title}
-              </Dialog.Title>
+              <Dialog.Title class="text-lg font-semibold">{props.title}</Dialog.Title>
               <Dialog.CloseButton class="p-2">
                 <X />
               </Dialog.CloseButton>

@@ -1,4 +1,4 @@
-import { Module, getSeededRand } from "https://qrframe.kylezhe.ng/utils.js";
+import { Module, getSeededRand } from "qrframe";
 
 export const paramsSchema = {
   Margin: {
@@ -129,8 +129,7 @@ export function renderSVG(qr, params) {
       const next = on(nx, ny, id);
       const cx = nx + dy;
       const cy = ny - dx;
-      const diag =
-        cx >= 0 && cx <= xMax && cy >= 0 && cy <= yMax && on(cx, cy, id);
+      const diag = cx >= 0 && cx <= xMax && cy >= 0 && cy <= yMax && on(cx, cy, id);
       if (!next || diag) {
         concave = next && diag;
         break;
@@ -169,14 +168,8 @@ export function renderSVG(qr, params) {
 
   for (let y = 0; y < rowLen; y++) {
     for (let x = 0; x < rowLen; x++) {
-      if (
-        y >= margin &&
-        y < rowLen - margin &&
-        x >= margin &&
-        x < rowLen - margin
-      ) {
-        matrix[y * rowLen + x] =
-          qr.matrix[(y - margin) * qrWidth + (x - margin)];
+      if (y >= margin && y < rowLen - margin && x >= margin && x < rowLen - margin) {
+        matrix[y * rowLen + x] = qr.matrix[(y - margin) * qrWidth + (x - margin)];
       }
     }
   }
@@ -193,19 +186,11 @@ export function renderSVG(qr, params) {
 
       const id = group[y * rowLen + x];
 
-      if (
-        y > 0 &&
-        group[(y - 1) * rowLen + x] === id &&
-        visited[(y - 1) * rowLen + x]
-      ) {
+      if (y > 0 && group[(y - 1) * rowLen + x] === id && visited[(y - 1) * rowLen + x]) {
         visited[y * rowLen + x] = true;
         continue;
       }
-      if (
-        x > 0 &&
-        group[y * rowLen + x - 1] === id &&
-        visited[y * rowLen + x - 1]
-      ) {
+      if (x > 0 && group[y * rowLen + x - 1] === id && visited[y * rowLen + x - 1]) {
         visited[y * rowLen + x] = true;
         continue;
       }

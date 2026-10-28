@@ -9,7 +9,7 @@ type Props = {
 };
 
 export function FileInput(props: Props) {
-  let input: HTMLInputElement;
+  let input!: HTMLInputElement;
   return (
     <div class="inline-flex items-center gap-1">
       <input

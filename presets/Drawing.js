@@ -1,4 +1,4 @@
-import { Module, getSeededRand } from "https://qrframe.kylezhe.ng/utils.js";
+import { Module, getSeededRand } from "qrframe";
 import rough from "https://esm.sh/roughjs";
 
 export const paramsSchema = {
@@ -10,15 +10,7 @@ export const paramsSchema = {
   },
   "Fill style": {
     type: "select",
-    options: [
-      "Hachure",
-      "Solid",
-      "Zigzag",
-      "Cross-hatch",
-      "Dots",
-      "Dashed",
-      "Zigzag-line",
-    ],
+    options: ["Hachure", "Solid", "Zigzag", "Cross-hatch", "Dots", "Dashed", "Zigzag-line"],
     default: "Zigzag",
   },
   Fill: {

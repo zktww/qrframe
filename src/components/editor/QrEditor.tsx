@@ -1,22 +1,8 @@
 import Pencil from "lucide-solid/icons/pencil";
 import Trash2 from "lucide-solid/icons/trash-2";
-import {
-  For,
-  Show,
-  Suspense,
-  batch,
-  createSignal,
-  lazy,
-  onMount,
-  type JSX,
-} from "solid-js";
+import { For, Show, Suspense, batch, createSignal, lazy, onMount, type JSX } from "solid-js";
 import { createStore } from "solid-js/store";
-import {
-  deepEqualObj,
-  defaultParams,
-  parseParamsSchema,
-  type ParamsSchema,
-} from "~/lib/params";
+import { deepEqualObj, defaultParams, parseParamsSchema, type ParamsSchema } from "~/lib/params";
 import { PRESET_CODE } from "~/lib/presets";
 import { useQrContext } from "~/lib/QrContext";
 import { useRenderContext, type RenderType } from "~/lib/RenderContext";
@@ -26,18 +12,16 @@ import { FillButton, FlatButton } from "../Button";
 import { Collapsible } from "../Collapsible";
 import { ContentMenuTrigger, ContextMenuProvider } from "../ContextMenu";
 import { ControlledDialog, DialogButton } from "../Dialog";
+import { Switch } from "../Switch";
 import { TextInput, TextareaInput } from "../TextInput";
 import { ParamsEditor } from "./ParamsEditor";
 import { Settings } from "./Settings";
-import { Switch } from "../Switch";
 
 const CodeEditor = lazy(() => {
   return import("./CodeEditor").then((module) => ({
     default: module.CodeEditor,
   }));
 });
-
-import "virtual:blob-rewriter";
 
 type Props = {
   class?: string;
@@ -48,7 +32,7 @@ type Props = {
 
 const FUNC_KEYS = "funcKeys";
 
-const VERSION = 5;
+const VERSION = 6;
 const PRESETS_VERSION = "presetsVersion";
 
 const LOADING_THUMB = `data:image/svg+xml,<svg viewBox="-12 -12 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M10.14,1.16a11,11,0,0,0-9,8.92A1.59,1.59,0,0,0,2.46,12,1.52,1.52,0,0,0,4.11,10.7a8,8,0,0,1,6.66-6.61A1.42,1.42,0,0,0,12,2.69h0A1.57,1.57,0,0,0,10.14,1.16Z"><animateTransform attributeName="transform" type="rotate" dur="0.75s" values="0 12 12;360 12 12" repeatCount="indefinite"/></path></svg>`;
@@ -65,15 +49,8 @@ function isPreset(key: string): key is keyof typeof PRESET_CODE {
 export function Editor(props: Props) {
   const { t } = useI18n();
   const { setInputQr } = useQrContext();
-  const {
-    paramsSchema,
-    setParamsSchema,
-    setParams,
-    renderKey,
-    setRenderKey,
-    setRender,
-    setError,
-  } = useRenderContext();
+  const { paramsSchema, setParamsSchema, setParams, renderKey, setRenderKey, setRender, setError } =
+    useRenderContext();
 
   const [code, setCode] = createSignal(PRESET_CODE.Basic);
   const [funcKeys, _setFuncKeys] = createStore<string[]>([]);
@@ -86,23 +63,20 @@ export function Editor(props: Props) {
   const [dialogKey, setDialogKey] = createSignal<string>("");
 
   let thumbWorker: Worker | null = null;
-  const timeoutIdMap = new Map<NodeJS.Timeout, string>();
+  const timeoutIdMap = new Map<number, string>();
 
   onMount(async () => {
     async function updatePresetThumbnail(key: keyof typeof PRESET_CODE) {
       // preset CAN error out, e.g. when importing 3rd party dep
       try {
-        const { type, url, parsedParamsSchema } = await importCode(
-          PRESET_CODE[key],
-        );
+        const { type, url, parsedParamsSchema } = await importCode(PRESET_CODE[key]);
         asyncUpdateThumbnail(key, type, url, parsedParamsSchema);
       } catch (e) {
         // skippa
       }
     }
     const storedVersion = localStorage.getItem(PRESETS_VERSION);
-    const upToDate =
-      storedVersion != null && parseInt(storedVersion) >= VERSION;
+    const upToDate = storedVersion != null && parseInt(storedVersion) >= VERSION;
     if (!upToDate) {
       localStorage.setItem(PRESETS_VERSION, VERSION.toString());
       for (const key of presetKeys) {
@@ -136,10 +110,7 @@ export function Editor(props: Props) {
   const setFuncKeys: typeof _setFuncKeys = (...args: any[]) => {
     // @ts-expect-error this is fine
     _setFuncKeys(...args);
-    localStorage.setItem(
-      FUNC_KEYS,
-      funcKeys.filter((key) => !presetKeys.includes(key)).join(","),
-    );
+    localStorage.setItem(FUNC_KEYS, funcKeys.filter((key) => !presetKeys.includes(key)).join(","));
   };
 
   const setExistingKey = (key: string) => {
@@ -156,7 +127,15 @@ export function Editor(props: Props) {
   };
 
   const importCode = async (code: string) => {
-    const blob = new Blob([code], { type: "text/javascript" });
+    // Resolve both current and legacy utility imports locally for saved presets.
+    // importmap doesn't work in web worker
+    const utilsUrl = new URL(`${import.meta.env.BASE_URL}utils.js`, location.origin).href;
+    const resolvedCode = code.replace(
+      /(\bfrom\s*["'])(?:qrframe|https:\/\/qrframe\.kylezhe\.ng\/utils\.js)(["'])/g,
+      `$1${utilsUrl}$2`,
+    );
+
+    const blob = new Blob([resolvedCode], { type: "text/javascript" });
     // This url is cleaned up in trySetCode()
     const url = URL.createObjectURL(blob);
 
@@ -186,11 +165,7 @@ export function Editor(props: Props) {
     return { type, url, parsedParamsSchema };
   };
 
-  const saveAndRun = async (
-    code: string,
-    save: boolean,
-    thumbnail: boolean,
-  ) => {
+  const saveAndRun = async (code: string, save: boolean, thumbnail: boolean) => {
     try {
       setCode(code);
       if (save) {
@@ -233,10 +208,7 @@ export function Editor(props: Props) {
     if (thumbWorker == null) setupThumbWorker();
 
     const timeoutId = setTimeout(() => {
-      console.error(
-        `Thumbnail took longer than 5 seconds, timed out!`,
-        timeoutId,
-      );
+      console.error(`Thumbnail took longer than 5 seconds, timed out!`, timeoutId);
       timeoutIdMap.delete(timeoutId);
       if (thumbWorker != null) {
         thumbWorker.terminate();
@@ -255,7 +227,7 @@ export function Editor(props: Props) {
 
   const setupThumbWorker = () => {
     console.log("Starting thumbnailWorker");
-    thumbWorker = new Worker("thumbnailWorker.js", { type: "module" });
+    thumbWorker = new Worker(`${import.meta.env.BASE_URL}thumbnailWorker.js`, { type: "module" });
 
     thumbWorker.onmessage = (e) => {
       clearTimeout(e.data.timeoutId);
@@ -369,9 +341,7 @@ export function Editor(props: Props) {
                   onKeyDown={(e) => e.key === "Enter" && onSubmit()}
                 />
                 <div class="absolute p-1 text-sm text-red-600">
-                  <Show when={duplicate()}>
-                    {t().editor.duplicateName(rename())}
-                  </Show>
+                  <Show when={duplicate()}>{t().editor.duplicateName(rename())}</Show>
                 </div>
                 <FillButton
                   class="px-3 py-2 float-right mt-4"
@@ -410,9 +380,7 @@ export function Editor(props: Props) {
                   >
                     {t().editor.confirm}
                   </FillButton>
-                  <FlatButton onMouseDown={close}>
-                    {t().editor.cancel}
-                  </FlatButton>
+                  <FlatButton onMouseDown={close}>{t().editor.cancel}</FlatButton>
                 </div>
               </>
             );
@@ -421,13 +389,9 @@ export function Editor(props: Props) {
         <div class="py-4 flex flex-col gap-4">
           <div class="h-[180px] md:(h-unset)">
             <div class="flex justify-between">
-              <div class="text-sm py-2 border border-transparent">
-                {t().editor.presets}
-              </div>
+              <div class="text-sm py-2 border border-transparent">{t().editor.presets}</div>
               <div class="flex gap-2">
-                <div class="flex items-center font-bold">
-                  {presetLabel(t(), renderKey())}
-                </div>
+                <div class="flex items-center font-bold">{presetLabel(t(), renderKey())}</div>
                 <Show when={!presetKeys.includes(renderKey())}>
                   <DialogButton
                     title={t().editor.rename}
@@ -492,11 +456,7 @@ export function Editor(props: Props) {
           </div>
           <ParamsEditor />
           <div>
-            <Switch
-              label={t().editor.codeEditor}
-              value={showCode()}
-              setValue={setShowCode}
-            />
+            <Switch label={t().editor.codeEditor} value={showCode()} setValue={setShowCode} />
             <Show when={showCode()}>
               <Suspense fallback={<p>{t().editor.loading}</p>}>
                 <CodeEditor
@@ -535,8 +495,7 @@ function Preview(props: PreviewProps) {
       <div
         classList={{
           "h-24 w-24 rounded-sm checkerboard": true,
-          "ring-2 ring-fore-base ring-offset-4 ring-offset-back-base":
-            props.active,
+          "ring-2 ring-fore-base ring-offset-4 ring-offset-back-base": props.active,
         }}
       >
         {props.children}

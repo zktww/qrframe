@@ -1,6 +1,6 @@
 // Based on QRBTF's Line style
 // https://github.com/CPunisher/react-qrbtf/blob/master/src/components/QRLine.tsx
-import { Module, getSeededRand } from "https://qrframe.kylezhe.ng/utils.js";
+import { Module, getSeededRand } from "qrframe";
 
 export const paramsSchema = {
   Margin: {
@@ -99,12 +99,7 @@ export function renderSVG(qr, params) {
       if (!visited1(x, y)) {
         let nx = x + 1;
         let ny = y + 1;
-        while (
-          nx < rowLen &&
-          ny < rowLen &&
-          matrix(nx, ny) & Module.ON &&
-          !visited1(nx, ny)
-        ) {
+        while (nx < rowLen && ny < rowLen && matrix(nx, ny) & Module.ON && !visited1(nx, ny)) {
           setVisited1(nx, ny);
           nx++;
           ny++;
@@ -117,12 +112,7 @@ export function renderSVG(qr, params) {
       if (!visited2(x, y)) {
         let nx = x - 1;
         let ny = y + 1;
-        while (
-          nx >= 0 &&
-          ny < rowLen &&
-          matrix(nx, ny) & Module.ON &&
-          !visited2(nx, ny)
-        ) {
+        while (nx >= 0 && ny < rowLen && matrix(nx, ny) & Module.ON && !visited2(nx, ny)) {
           setVisited2(nx, ny);
           nx--;
           ny++;

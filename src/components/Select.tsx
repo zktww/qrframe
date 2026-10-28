@@ -32,9 +32,7 @@ export function Select(props: Props) {
         const index = props.options.indexOf(props.value);
         switch (e.key) {
           case "ArrowDown":
-            props.setValue(
-              props.options[Math.min(index + 1, props.options.length - 1)],
-            );
+            props.setValue(props.options[Math.min(index + 1, props.options.length - 1)]);
             break;
           case "ArrowUp":
             props.setValue(props.options[Math.max(index - 1, 0)]);
